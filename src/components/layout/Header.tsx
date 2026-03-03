@@ -1,0 +1,136 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Search, LogOut, Settings, User, Bell, Moon, Sun } from "lucide-react";
+import Link from "next/link";
+import { toast } from "react-hot-toast";
+import GlobalSearch from "@/components/GlobalSearch";
+
+export default function Header() {
+    const [profileOpen, setProfileOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [dark, setDark] = useState(false);
+
+    // Hydrate dark mode from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem("verdict-dark");
+        if (saved === "true") {
+            setDark(true);
+            document.documentElement.classList.add("dark");
+        }
+    }, []);
+
+    const toggleDark = () => {
+        setDark(prev => {
+            const next = !prev;
+            document.documentElement.classList.toggle("dark", next);
+            localStorage.setItem("verdict-dark", String(next));
+            return next;
+        });
+    };
+
+    // Ctrl+K / Cmd+K shortcut
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                e.preventDefault();
+                setSearchOpen(prev => !prev);
+            }
+            if (e.key === "Escape") setSearchOpen(false);
+        };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+    }, []);
+
+    const handleNotifications = () => {
+        toast("No new announcements.", { icon: "📝" });
+    };
+
+    return (
+        <>
+            <header className="h-20 border-b border-ink flex items-stretch bg-newsprint sticky top-0 z-20">
+
+                {/* Universal Search Area */}
+                <div className="flex-[2] border-r border-ink flex items-center px-6 group cursor-pointer" onClick={() => setSearchOpen(true)}>
+                    <Search className="w-4 h-4 text-ink mr-3" strokeWidth={1.5} />
+                    <span className="text-xs font-sans text-neutral uppercase tracking-wider">Search cases, docs, evidence...</span>
+                    <div className="text-[10px] font-mono px-2 py-1 border border-ink text-neutral hidden md:block select-none ml-3 shrink-0 uppercase">
+                        ⌘K
+                    </div>
+                </div>
+
+                {/* Notifications */}
+                <div
+                    className="flex items-center justify-center px-6 border-r border-ink cursor-pointer hover:bg-ink/5 transition-colors relative"
+                    onClick={handleNotifications}
+                >
+                    <div className="flex flex-col items-center">
+                        <span className="uppercase tracking-widest font-sans font-bold text-[10px] mb-0.5 text-ink">Alerts</span>
+                        <span className="font-mono text-xs font-bold text-accent">( 2 )</span>
+                    </div>
+                </div>
+
+                {/* Dark Mode Toggle */}
+                <div
+                    className="flex items-center justify-center px-5 border-r border-ink cursor-pointer hover:bg-ink/5 transition-colors"
+                    onClick={toggleDark}
+                >
+                    {dark ? <Sun className="w-4 h-4 text-ink" strokeWidth={1.5} /> : <Moon className="w-4 h-4 text-ink" strokeWidth={1.5} />}
+                </div>
+
+                {/* Date Badge */}
+                <div className="flex items-center justify-center px-6 border-r border-ink">
+                    <div className="text-center">
+                        <span className="block font-serif text-sm font-bold text-ink">
+                            {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
+                        </span>
+                        <span className="block text-[10px] font-mono text-neutral uppercase tracking-wider">
+                            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Profile Area */}
+                <div className="flex items-center justify-center px-6 relative cursor-pointer hover:bg-ink/5 transition-colors" onClick={() => setProfileOpen(!profileOpen)}>
+                    <div className="text-right hidden xl:block mr-4">
+                        <p className="text-xs font-sans font-bold uppercase tracking-wider text-ink">Adv. Prit Thacker</p>
+                        <p className="text-[10px] font-mono text-neutral uppercase mt-0.5 tracking-wider">Partner</p>
+                    </div>
+                    <div className="w-10 h-10 border border-ink bg-newsprint flex items-center justify-center font-serif font-bold text-sm text-ink">
+                        PT
+                    </div>
+
+                    {/* Dropdown */}
+                    {profileOpen && (
+                        <div className="absolute top-full right-0 mt-0 w-56 bg-newsprint border border-ink z-50 flex flex-col">
+                            <div className="px-4 py-3 border-b border-ink bg-ink text-newsprint">
+                                <p className="text-xs font-sans font-bold uppercase">Adv. Prit Thacker</p>
+                                <p className="text-[10px] font-mono text-neutral mt-1 uppercase">prit@verdictlaw.in</p>
+                            </div>
+
+                            <Link href="/settings" className="px-4 py-3 border-b border-ink font-sans text-xs font-semibold uppercase hover:bg-ink/5 text-ink flex items-center transition-colors tracking-wider">
+                                <User className="w-3.5 h-3.5 mr-3" strokeWidth={1.5} /> Profile
+                            </Link>
+
+                            <Link href="/settings" className="px-4 py-3 border-b border-ink font-sans text-xs font-semibold uppercase hover:bg-ink/5 text-ink flex items-center transition-colors tracking-wider">
+                                <Settings className="w-3.5 h-3.5 mr-3" strokeWidth={1.5} /> Firm Settings
+                            </Link>
+
+                            <button onClick={() => {
+                                document.cookie = "verdict_auth=; path=/; max-age=0";
+                                toast.error("SESSION TERMINATED");
+                                window.location.href = "/login";
+                            }} className="px-4 py-3 font-sans text-xs font-semibold uppercase hover:bg-accent hover:text-white text-ink flex items-center text-left transition-colors tracking-wider">
+                                <LogOut className="w-3.5 h-3.5 mr-3" strokeWidth={1.5} /> Disconnect
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+            </header>
+
+            {/* Global Search Modal */}
+            {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
+        </>
+    );
+}
