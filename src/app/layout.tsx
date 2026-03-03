@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import MainLayout from '@/components/layout/MainLayout';
+import AuthProvider from '@/components/AuthProvider';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
@@ -16,9 +17,11 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className="bg-newsprint text-ink antialiased flex h-screen overflow-hidden font-sans">
-                <MainLayout>
-                    {children}
-                </MainLayout>
+                <AuthProvider>
+                    <MainLayout>
+                        {children}
+                    </MainLayout>
+                </AuthProvider>
                 <Toaster
                     position="bottom-right"
                     toastOptions={{
@@ -35,3 +38,4 @@ export default function RootLayout({
         </html>
     );
 }
+
