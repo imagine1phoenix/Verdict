@@ -79,7 +79,7 @@ export default function CasesPage() {
             <div className="border-b-[4px] border-ink pb-5 mb-6">
                 <div className="flex flex-col md:flex-row justify-between items-end gap-4">
                     <div>
-                        <h1 className="font-serif text-3xl font-bold text-ink tracking-tight mb-1">Case Management</h1>
+                        <h1 className="font-serif text-2xl md:text-3xl font-bold text-ink tracking-tight mb-1">Case Management</h1>
                         <p className="text-sm font-sans text-neutral">Track, manage, and collaborate on all active and closed cases.</p>
                     </div>
                     <button onClick={() => toast("NEW CASE WIZARD...")} className="flex items-center px-4 py-2 bg-ink text-newsprint hover:bg-ink/90 transition-colors font-sans text-[10px] font-bold uppercase tracking-wider shrink-0">
@@ -89,10 +89,10 @@ export default function CasesPage() {
             </div>
 
             {/* ── Pipeline View ── */}
-            <div className="flex border border-ink mb-6">
+            <div className="flex border border-ink mb-6 overflow-x-auto">
                 <button
                     onClick={() => setActiveStage("all")}
-                    className={`flex-1 py-3 text-center font-sans text-[10px] font-bold uppercase tracking-wider transition-colors border-r border-ink ${activeStage === "all" ? 'bg-ink text-newsprint' : 'text-neutral hover:bg-ink/5'}`}
+                    className={`flex-1 min-w-[80px] py-3 text-center font-sans text-[10px] font-bold uppercase tracking-wider transition-colors border-r border-ink whitespace-nowrap ${activeStage === "all" ? 'bg-ink text-newsprint' : 'text-neutral hover:bg-ink/5'}`}
                 >
                     All ({cases.length})
                 </button>
@@ -100,7 +100,7 @@ export default function CasesPage() {
                     <button
                         key={stage.id}
                         onClick={() => setActiveStage(stage.id)}
-                        className={`flex-1 py-3 text-center font-sans text-[10px] font-bold uppercase tracking-wider transition-colors ${i < pipelineStages.length - 1 ? 'border-r border-ink' : ''} ${activeStage === stage.id ? 'bg-ink text-newsprint' : 'text-neutral hover:bg-ink/5'}`}
+                        className={`flex-1 min-w-[80px] py-3 text-center font-sans text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap ${i < pipelineStages.length - 1 ? 'border-r border-ink' : ''} ${activeStage === stage.id ? 'bg-ink text-newsprint' : 'text-neutral hover:bg-ink/5'}`}
                     >
                         {stage.label} ({stage.count})
                     </button>

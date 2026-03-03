@@ -49,7 +49,7 @@ export default function AIChatbot() {
         return (
             <button
                 onClick={() => setOpen(true)}
-                className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-ink text-newsprint flex items-center justify-center hover:bg-ink/90 transition-all group shadow-lg"
+                className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 w-11 h-11 md:w-12 md:h-12 bg-ink text-newsprint flex items-center justify-center hover:bg-ink/90 transition-all group shadow-lg"
             >
                 <Bot className="w-5 h-5" strokeWidth={1.5} />
                 <span className="absolute -top-8 right-0 bg-ink text-newsprint text-[9px] font-sans font-bold px-2 py-1 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -60,7 +60,7 @@ export default function AIChatbot() {
     }
 
     return (
-        <div className={`fixed z-50 bg-newsprint border border-ink flex flex-col shadow-xl transition-all ${minimized ? 'bottom-6 right-6 w-72 h-12' : 'bottom-6 right-6 w-96 h-[520px]'}`}>
+        <div className={`fixed z-50 bg-newsprint border border-ink flex flex-col shadow-xl transition-all ${minimized ? 'bottom-4 right-4 md:bottom-6 md:right-6 w-72 h-12' : 'inset-0 md:inset-auto md:bottom-6 md:right-6 md:w-96 md:h-[520px]'}`}>
             {/* Header */}
             <div className="h-10 border-b border-ink px-3 flex items-center justify-between section-inverted shrink-0">
                 <div className="flex items-center gap-2">

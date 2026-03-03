@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, LogOut, Settings, User, Bell, Moon, Sun } from "lucide-react";
+import { Search, LogOut, Settings, User, Bell, Moon, Sun, Menu } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import GlobalSearch from "@/components/GlobalSearch";
 
-export default function Header() {
+interface HeaderProps {
+    onMenuToggle?: () => void;
+}
+
+export default function Header({ onMenuToggle }: HeaderProps) {
     const [profileOpen, setProfileOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [dark, setDark] = useState(false);
@@ -48,12 +52,21 @@ export default function Header() {
 
     return (
         <>
-            <header className="h-20 border-b border-ink flex items-stretch bg-newsprint sticky top-0 z-20">
+            <header className="h-14 md:h-20 border-b border-ink flex items-stretch bg-newsprint sticky top-0 z-20">
+
+                {/* Mobile Menu Button */}
+                <div
+                    className="flex md:hidden items-center justify-center px-4 border-r border-ink cursor-pointer hover:bg-ink/5 transition-colors"
+                    onClick={onMenuToggle}
+                >
+                    <Menu className="w-5 h-5 text-ink" strokeWidth={1.5} />
+                </div>
 
                 {/* Universal Search Area */}
-                <div className="flex-[2] border-r border-ink flex items-center px-6 group cursor-pointer" onClick={() => setSearchOpen(true)}>
-                    <Search className="w-4 h-4 text-ink mr-3" strokeWidth={1.5} />
-                    <span className="text-xs font-sans text-neutral uppercase tracking-wider">Search cases, docs, evidence...</span>
+                <div className="flex-[2] border-r border-ink flex items-center px-3 md:px-6 group cursor-pointer min-w-0" onClick={() => setSearchOpen(true)}>
+                    <Search className="w-4 h-4 text-ink mr-2 md:mr-3 shrink-0" strokeWidth={1.5} />
+                    <span className="text-xs font-sans text-neutral uppercase tracking-wider truncate hidden sm:inline">Search cases, docs, evidence...</span>
+                    <span className="text-xs font-sans text-neutral uppercase tracking-wider sm:hidden">Search...</span>
                     <div className="text-[10px] font-mono px-2 py-1 border border-ink text-neutral hidden md:block select-none ml-3 shrink-0 uppercase">
                         ⌘K
                     </div>
@@ -61,25 +74,25 @@ export default function Header() {
 
                 {/* Notifications */}
                 <div
-                    className="flex items-center justify-center px-6 border-r border-ink cursor-pointer hover:bg-ink/5 transition-colors relative"
+                    className="flex items-center justify-center px-3 md:px-6 border-r border-ink cursor-pointer hover:bg-ink/5 transition-colors relative"
                     onClick={handleNotifications}
                 >
                     <div className="flex flex-col items-center">
-                        <span className="uppercase tracking-widest font-sans font-bold text-[10px] mb-0.5 text-ink">Alerts</span>
+                        <span className="uppercase tracking-widest font-sans font-bold text-[10px] mb-0.5 text-ink hidden sm:block">Alerts</span>
                         <span className="font-mono text-xs font-bold text-accent">( 2 )</span>
                     </div>
                 </div>
 
                 {/* Dark Mode Toggle */}
                 <div
-                    className="flex items-center justify-center px-5 border-r border-ink cursor-pointer hover:bg-ink/5 transition-colors"
+                    className="flex items-center justify-center px-3 md:px-5 border-r border-ink cursor-pointer hover:bg-ink/5 transition-colors"
                     onClick={toggleDark}
                 >
                     {dark ? <Sun className="w-4 h-4 text-ink" strokeWidth={1.5} /> : <Moon className="w-4 h-4 text-ink" strokeWidth={1.5} />}
                 </div>
 
-                {/* Date Badge */}
-                <div className="flex items-center justify-center px-6 border-r border-ink">
+                {/* Date Badge — hidden on mobile */}
+                <div className="hidden md:flex items-center justify-center px-6 border-r border-ink">
                     <div className="text-center">
                         <span className="block font-serif text-sm font-bold text-ink">
                             {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
@@ -91,12 +104,12 @@ export default function Header() {
                 </div>
 
                 {/* Profile Area */}
-                <div className="flex items-center justify-center px-6 relative cursor-pointer hover:bg-ink/5 transition-colors" onClick={() => setProfileOpen(!profileOpen)}>
+                <div className="flex items-center justify-center px-3 md:px-6 relative cursor-pointer hover:bg-ink/5 transition-colors" onClick={() => setProfileOpen(!profileOpen)}>
                     <div className="text-right hidden xl:block mr-4">
                         <p className="text-xs font-sans font-bold uppercase tracking-wider text-ink">Adv. Prit Thacker</p>
                         <p className="text-[10px] font-mono text-neutral uppercase mt-0.5 tracking-wider">Partner</p>
                     </div>
-                    <div className="w-10 h-10 border border-ink bg-newsprint flex items-center justify-center font-serif font-bold text-sm text-ink">
+                    <div className="w-8 h-8 md:w-10 md:h-10 border border-ink bg-newsprint flex items-center justify-center font-serif font-bold text-xs md:text-sm text-ink shrink-0">
                         PT
                     </div>
 

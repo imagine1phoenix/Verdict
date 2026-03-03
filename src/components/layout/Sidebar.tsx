@@ -1,9 +1,10 @@
 "use client";
 
-import { Scale, Home, Calendar, FileText, History, Settings, ChevronRight, FolderOpen, Archive, BarChart3, Users, GraduationCap, Gavel } from "lucide-react";
+import { Scale, Home, Calendar, FileText, History, Settings, ChevronRight, FolderOpen, Archive, BarChart3, Users, GraduationCap, Gavel, X } from "lucide-react";
 import { clsx } from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 const menuItems = [
     { icon: Home, label: "Dashboard", href: "/" },
@@ -22,15 +23,34 @@ const bottomItems = [
     { icon: GraduationCap, label: "Knowledge", href: "/knowledge" },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+    open?: boolean;
+    onClose?: () => void;
+}
+
+export default function Sidebar({ open, onClose }: SidebarProps) {
     const pathname = usePathname();
 
-    return (
-        <aside className="w-60 bg-newsprint border-r border-ink flex flex-col relative shrink-0">
+    // Close sidebar on route change (mobile)
+    useEffect(() => {
+        onClose?.();
+    }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Prevent body scroll when mobile sidebar is open
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => { document.body.style.overflow = ""; };
+    }, [open]);
+
+    const sidebarContent = (
+        <>
             {/* Masthead / Brand */}
-            <div className="h-20 border-b-[4px] border-ink flex items-center justify-center px-6">
-                <div className="text-center">
+            <div className="h-20 border-b-[4px] border-ink flex items-center justify-between px-6">
+                <div className="text-center flex-1">
                     <span className="font-serif text-2xl font-bold tracking-[0.2em] text-ink uppercase block">
                         Verdict
                     </span>
@@ -38,6 +58,10 @@ export default function Sidebar() {
                         Legal Intelligence
                     </span>
                 </div>
+                {/* Mobile close button */}
+                <button onClick={onClose} className="md:hidden p-1 text-ink hover:text-accent transition-colors -mr-2">
+                    <X className="w-5 h-5" strokeWidth={1.5} />
+                </button>
             </div>
 
             {/* Edition info */}
@@ -104,7 +128,34 @@ export default function Sidebar() {
                     © 2024 Verdict.AI<br />All rights reserved
                 </p>
             </div>
+        </>
+    );
 
-        </aside>
+    return (
+        <>
+            {/* Desktop sidebar — always visible */}
+            <aside className="hidden md:flex w-60 bg-newsprint border-r border-ink flex-col relative shrink-0">
+                {sidebarContent}
+            </aside>
+
+            {/* Mobile sidebar — slide-in drawer */}
+            {/* Backdrop */}
+            <div
+                className={clsx(
+                    "fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-300",
+                    open ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}
+                onClick={onClose}
+            />
+            {/* Drawer */}
+            <aside
+                className={clsx(
+                    "fixed left-0 top-0 bottom-0 w-72 bg-newsprint border-r border-ink flex flex-col z-50 md:hidden transition-transform duration-300 ease-in-out",
+                    open ? "translate-x-0" : "-translate-x-full"
+                )}
+            >
+                {sidebarContent}
+            </aside>
+        </>
     );
 }

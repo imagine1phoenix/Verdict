@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 export default function MainLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -26,16 +27,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
     return (
         <>
-            <Sidebar />
+            <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             <div className="flex flex-col flex-1 min-w-0">
-                <Header />
+                <Header onMenuToggle={() => setSidebarOpen(prev => !prev)} />
                 <main className="flex-1 overflow-y-auto bg-newsprint">
-                    <div className="max-w-7xl mx-auto p-8">
+                    <div className="max-w-7xl mx-auto p-4 md:p-8">
                         <Breadcrumbs />
                         {children}
                     </div>
                     {/* Footer */}
-                    <footer className="border-t border-ink px-8 py-4 mt-auto">
+                    <footer className="border-t border-ink px-4 md:px-8 py-4 mt-auto">
                         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
                             <span className="font-mono text-[9px] text-neutral uppercase tracking-wider">
                                 © 2024 Verdict.AI — All rights reserved

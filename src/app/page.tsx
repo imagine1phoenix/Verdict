@@ -57,13 +57,13 @@ export default function Home() {
             <div className="border-b-[4px] border-ink pb-6 mb-6">
                 <div className="flex flex-col md:flex-row justify-between items-end gap-6">
                     <div className="flex-1">
-                        <h1 className="font-serif text-4xl font-bold text-ink tracking-tight">Dashboard</h1>
+                        <h1 className="font-serif text-2xl md:text-4xl font-bold text-ink tracking-tight">Dashboard</h1>
                         <p className="drop-cap text-sm text-neutral font-sans mt-3 leading-relaxed max-w-xl">
                             Welcome back, Adv. Prit. Here is your firm&apos;s AI intelligence summary for today&apos;s edition. All case analytics and document scans are current as of this morning.
                         </p>
                     </div>
 
-                    <div className="flex space-x-2 shrink-0">
+                    <div className="flex flex-wrap gap-2 shrink-0">
                         <button onClick={handleInvite} className="flex items-center px-4 py-2 border border-ink bg-transparent text-ink hover:bg-ink/5 transition-colors font-sans text-[10px] font-bold uppercase tracking-wider">
                             Invite Colleague
                             <ArrowRight className="w-3 h-3 ml-2" strokeWidth={1.5} />
@@ -105,13 +105,13 @@ export default function Home() {
                         </div>
                         <div className="divide-y divide-ink/10">
                             {calendarEvents.map((event, i) => (
-                                <div key={i} className="flex items-center px-4 py-2.5 hover:bg-ink/[0.03] transition-colors cursor-pointer">
-                                    <span className="font-mono text-[10px] font-bold text-neutral w-20 shrink-0 uppercase">
+                                <div key={i} className="flex flex-wrap md:flex-nowrap items-center px-4 py-2.5 hover:bg-ink/[0.03] transition-colors cursor-pointer gap-y-1">
+                                    <span className="font-mono text-[10px] font-bold text-neutral w-16 md:w-20 shrink-0 uppercase">
                                         {event.day}
                                     </span>
-                                    <span className="font-sans text-xs font-semibold text-ink flex-1">{event.event}</span>
+                                    <span className="font-sans text-xs font-semibold text-ink flex-1 min-w-0">{event.event}</span>
                                     <span className="text-[9px] font-mono text-neutral uppercase mr-3">{event.time}</span>
-                                    <span className="text-[8px] font-sans font-bold uppercase tracking-wider border border-ink/30 px-1.5 py-0.5 text-neutral">{event.type}</span>
+                                    <span className="text-[8px] font-sans font-bold uppercase tracking-wider border border-ink/30 px-1.5 py-0.5 text-neutral shrink-0">{event.type}</span>
                                 </div>
                             ))}
                         </div>
