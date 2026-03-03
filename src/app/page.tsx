@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Scale, FileCheck2, TrendingUp, Clock, Gavel, FileWarning, ArrowRight, CalendarDays, FileText, Users, Activity } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -7,16 +8,17 @@ import AIInsightsPanel from "@/components/AIInsightsPanel";
 import CollaborationIndicators from "@/components/CollaborationIndicators";
 import PinnedAndRecent from "@/components/PinnedAndRecent";
 
+const statIcons = [Scale, CalendarDays, Gavel, TrendingUp];
 
-
-const stats = [
-    { title: "Active Cases", value: "12", icon: Scale },
-    { title: "Upcoming Hearings", value: "3", icon: CalendarDays },
-    { title: "Recent Trials", value: "5", icon: Gavel },
-    { title: "Prediction Accuracy", value: "94.2%", icon: TrendingUp },
+// Fallback mock data
+const fallbackStats = [
+    { title: "Active Cases", value: "12" },
+    { title: "Upcoming Hearings", value: "3" },
+    { title: "Recent Trials", value: "5" },
+    { title: "Prediction Accuracy", value: "94.2%" },
 ];
 
-const calendarEvents = [
+const fallbackEvents = [
     { day: "Today", event: "Deposition Review", time: "2:00 PM", type: "Deposition" },
     { day: "Tomorrow", event: "Mock Trial — Smith v. Jones", time: "10:00 AM", type: "Trial" },
     { day: "Wed", event: "Client Briefing — Horizon Corp", time: "3:30 PM", type: "Meeting" },
@@ -24,14 +26,14 @@ const calendarEvents = [
     { day: "Fri", event: "Settlement Negotiation", time: "11:00 AM", type: "Negotiation" },
 ];
 
-const recentDocuments = [
+const fallbackDocuments = [
     { name: "Brief_v3.docx", type: "Brief", updated: "2h ago" },
     { name: "Evidence_22.pdf", type: "Evidence", updated: "5h ago" },
     { name: "Contract_Review.docx", type: "Contract", updated: "1d ago" },
     { name: "Deposition_Notes.pdf", type: "Notes", updated: "2d ago" },
 ];
 
-const activityFeed = [
+const fallbackActivity = [
     { user: "Adv. Prit", action: "edited case brief", target: "Sharma v. State", time: "10m ago" },
     { user: "System", action: "Mock trial completed", target: "Smith v. Jones — 82% win", time: "1h ago" },
     { user: "Adv. Meera", action: "added new evidence", target: "Nexus IP Dispute", time: "3h ago" },
@@ -41,6 +43,26 @@ const activityFeed = [
 
 export default function Home() {
     const router = useRouter();
+    const [stats, setStats] = useState(fallbackStats);
+    const [calendarEvents, setCalendarEvents] = useState(fallbackEvents);
+    const [recentDocuments, setRecentDocuments] = useState(fallbackDocuments);
+    const [activityFeed, setActivityFeed] = useState(fallbackActivity);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch("/api/dashboard")
+            .then((res) => res.json())
+            .then((data) => {
+                if (!data.error) {
+                    if (data.stats?.length) setStats(data.stats);
+                    if (data.events?.length) setCalendarEvents(data.events);
+                    if (data.recentDocuments?.length) setRecentDocuments(data.recentDocuments);
+                    if (data.activities?.length) setActivityFeed(data.activities);
+                }
+            })
+            .catch(() => { /* use fallback data */ })
+            .finally(() => setLoading(false));
+    }, []);
 
     const handleInvite = () => {
         toast.success("INVITATION LINK COPIED");
@@ -76,17 +98,22 @@ export default function Home() {
                 </div>
             </div>
 
-            {/* Stats Row — collapsed borders */}
+            {/* Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 border border-ink mb-6">
-                {stats.map((stat, i) => (
-                    <div key={i} className={`p-4 flex flex-col hover:bg-ink/5 transition-colors cursor-pointer ${i < stats.length - 1 ? 'border-r border-ink' : ''} ${i < 2 ? 'border-b md:border-b-0 border-ink' : ''}`}>
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="font-sans text-[9px] font-bold uppercase tracking-widest text-neutral">{stat.title}</span>
-                            <stat.icon className="w-3.5 h-3.5 text-ink" strokeWidth={1.5} />
+                {stats.map((stat, i) => {
+                    const Icon = statIcons[i] || Scale;
+                    return (
+                        <div key={i} className={`p-4 flex flex-col hover:bg-ink/5 transition-colors cursor-pointer ${i < stats.length - 1 ? 'border-r border-ink' : ''} ${i < 2 ? 'border-b md:border-b-0 border-ink' : ''}`}>
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="font-sans text-[9px] font-bold uppercase tracking-widest text-neutral">{stat.title}</span>
+                                <Icon className="w-3.5 h-3.5 text-ink" strokeWidth={1.5} />
+                            </div>
+                            <span className={`text-2xl font-mono font-bold tracking-tighter text-ink ${loading ? 'animate-pulse bg-ink/10 w-16 h-8' : ''}`}>
+                                {loading ? '' : stat.value}
+                            </span>
                         </div>
-                        <span className="text-2xl font-mono font-bold tracking-tighter text-ink">{stat.value}</span>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* AI Insights — full width */}
@@ -101,7 +128,7 @@ export default function Home() {
                                 <CalendarDays className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} />
                                 Today&apos;s Schedule
                             </span>
-                            <span className="text-[9px] font-mono text-neutral uppercase">5 events</span>
+                            <span className="text-[9px] font-mono text-neutral uppercase">{calendarEvents.length} events</span>
                         </div>
                         <div className="divide-y divide-ink/10">
                             {calendarEvents.map((event, i) => (
