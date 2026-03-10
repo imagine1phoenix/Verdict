@@ -132,3 +132,135 @@ export const timeEntries = pgTable("time_entries", {
     date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ─── Documents ───────────────────────────────────────────────────────────────
+
+export const documents = pgTable("documents", {
+    id: serial("id").primaryKey(),
+    title: text("title").notNull(),
+    caseRef: text("case_ref"),
+    category: varchar("category", { length: 50 }).notNull(), // pleading, contract, evidence, correspondence, brief, motion, memo, other
+    status: varchar("status", { length: 20 }).default("draft").notNull(), // draft, review, approved, filed, archived
+    uploadedBy: integer("uploaded_by").references(() => users.id, { onDelete: "set null" }),
+    uploadedByName: text("uploaded_by_name"),
+    fileUrl: text("file_url"),
+    fileType: varchar("file_type", { length: 20 }), // pdf, docx, xlsx, img, other
+    fileSize: integer("file_size"), // bytes
+    version: integer("version").default(1).notNull(),
+    tags: jsonb("tags").default([]).notNull(),
+    metadata: jsonb("metadata").default({}).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─── Mock Trials ─────────────────────────────────────────────────────────────
+
+export const mockTrials = pgTable("mock_trials", {
+    id: serial("id").primaryKey(),
+    title: text("title").notNull(),
+    caseRef: text("case_ref"),
+    status: varchar("status", { length: 20 }).default("scheduled").notNull(), // scheduled, in-progress, completed, cancelled
+    date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD
+    time: text("time"),
+    location: text("location"),
+    presiding: text("presiding"),
+    team: jsonb("team").default([]).notNull(), // [{name, role}]
+    witnesses: jsonb("witnesses").default([]).notNull(), // [{name, type, status}]
+    notes: text("notes"),
+    outcome: text("outcome"),
+    recordings: jsonb("recordings").default([]).notNull(), // [{url, label, duration}]
+    score: jsonb("score"), // {persuasion, preparation, evidence_handling, overall}
+    feedback: jsonb("feedback").default([]).notNull(), // [{from, comment, rating}]
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─── Proofreading Jobs ───────────────────────────────────────────────────────
+
+export const proofreadingJobs = pgTable("proofreading_jobs", {
+    id: serial("id").primaryKey(),
+    documentId: integer("document_id").references(() => documents.id, { onDelete: "set null" }),
+    documentTitle: text("document_title"),
+    submittedBy: integer("submitted_by").references(() => users.id, { onDelete: "set null" }),
+    submittedByName: text("submitted_by_name"),
+    status: varchar("status", { length: 20 }).default("pending").notNull(), // pending, in-progress, completed, revision-needed
+    priority: varchar("priority", { length: 20 }).default("Medium").notNull(),
+    assignedTo: text("assigned_to"),
+    originalText: text("original_text"),
+    correctedText: text("corrected_text"),
+    comments: jsonb("comments").default([]).notNull(), // [{author, text, position, resolved}]
+    issuesFound: integer("issues_found").default(0).notNull(),
+    dueDate: text("due_date"),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─── Evidence ────────────────────────────────────────────────────────────────
+
+export const evidence = pgTable("evidence", {
+    id: serial("id").primaryKey(),
+    evidenceId: varchar("evidence_id", { length: 50 }).notNull().unique(), // EVD-YYYY-NNN
+    caseRef: text("case_ref"),
+    title: text("title").notNull(),
+    type: varchar("type", { length: 30 }).notNull(), // physical, digital, documentary, testimonial, forensic
+    status: varchar("status", { length: 20 }).default("collected").notNull(), // collected, processing, verified, admitted, challenged, excluded
+    collectedBy: text("collected_by"),
+    collectedDate: varchar("collected_date", { length: 10 }),
+    chainOfCustody: jsonb("chain_of_custody").default([]).notNull(), // [{handler, action, date, location, notes}]
+    storageLocation: text("storage_location"),
+    fileUrl: text("file_url"),
+    description: text("description"),
+    tags: jsonb("tags").default([]).notNull(),
+    metadata: jsonb("metadata").default({}).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─── Knowledge Articles ──────────────────────────────────────────────────────
+
+export const knowledgeArticles = pgTable("knowledge_articles", {
+    id: serial("id").primaryKey(),
+    title: text("title").notNull(),
+    category: varchar("category", { length: 50 }).notNull(), // case-law, statute, procedure, template, guide, precedent, internal-memo
+    content: text("content"), // full body — markdown supported
+    summary: text("summary"),
+    author: text("author"),
+    tags: jsonb("tags").default([]).notNull(),
+    references: jsonb("references").default([]).notNull(), // [{title, url, type}]
+    views: integer("views").default(0).notNull(),
+    isPinned: boolean("is_pinned").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─── Past Trials ─────────────────────────────────────────────────────────────
+
+export const pastTrials = pgTable("past_trials", {
+    id: serial("id").primaryKey(),
+    caseRef: text("case_ref"),
+    caseName: text("case_name").notNull(),
+    court: text("court"),
+    judge: text("judge"),
+    verdict: varchar("verdict", { length: 20 }).notNull(), // won, lost, settled, dismissed, mistrial
+    dateConcluded: varchar("date_concluded", { length: 10 }),
+    durationDays: integer("duration_days"),
+    leadAttorney: text("lead_attorney"),
+    team: jsonb("team").default([]).notNull(),
+    summary: text("summary"),
+    keyArguments: jsonb("key_arguments").default([]).notNull(), // array of strings
+    opposingCounsel: text("opposing_counsel"),
+    lessonsLearned: text("lessons_learned"),
+    documents: jsonb("documents").default([]).notNull(), // [{title, url}]
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ─── Analytics Snapshots ─────────────────────────────────────────────────────
+
+export const analyticsSnapshots = pgTable("analytics_snapshots", {
+    id: serial("id").primaryKey(),
+    period: varchar("period", { length: 20 }).notNull(), // daily, weekly, monthly, quarterly, yearly
+    date: varchar("date", { length: 10 }).notNull(),
+    metrics: jsonb("metrics").default({}).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
