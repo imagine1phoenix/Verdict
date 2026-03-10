@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import {
     Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, MapPin, Clock,
     X, Gavel, Users, FileText, AlertTriangle, Timer, BookOpen, User,
-    Bell, Mail, Smartphone, Download, RefreshCw, ExternalLink, Layers
+    Bell, Mail, Smartphone, Download, RefreshCw, ExternalLink, Layers, Loader2
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-/* ─── Types & Data ─── */
+/* ─── Types ─── */
 
 type ViewMode = "daily" | "weekly" | "monthly" | "agenda" | "timeline";
-
 type EventType = "hearing" | "meeting" | "mock-trial" | "deadline" | "deposition" | "internal" | "reminder" | "limitation";
 
 const eventTypeConfig: Record<EventType, { label: string; color: string; icon: typeof Gavel }> = {
@@ -27,23 +27,8 @@ const eventTypeConfig: Record<EventType, { label: string; color: string; icon: t
 
 type CalEvent = {
     id: number; title: string; type: EventType; date: string; time: string;
-    lawyer: string; case?: string; location?: string; conflict?: boolean;
+    lawyer: string; caseRef?: string; location?: string; conflict?: boolean; recurring?: boolean;
 };
-
-const events: CalEvent[] = [
-    { id: 1, title: "Sharma v. State — Hearing #4", type: "hearing", date: "2026-02-24", time: "10:00 AM", lawyer: "Adv. Prit", case: "VDT-2024-001", location: "HC Mumbai, Court 3" },
-    { id: 2, title: "Horizon Corp — Client Call", type: "meeting", date: "2026-02-24", time: "2:00 PM", lawyer: "Adv. Prit", case: "VDT-2024-003" },
-    { id: 3, title: "Nexus IP — Filing Deadline", type: "deadline", date: "2026-02-25", time: "EOD", lawyer: "Adv. Meera", case: "VDT-2024-002" },
-    { id: 4, title: "Mock Trial — Smith v. Jones", type: "mock-trial", date: "2026-02-25", time: "11:00 AM", lawyer: "Adv. Prit", case: "VDT-2024-001" },
-    { id: 5, title: "Dr. Mehta Deposition", type: "deposition", date: "2026-02-26", time: "3:00 PM", lawyer: "Adv. Meera", case: "VDT-2024-001", location: "Office — Conference Room A" },
-    { id: 6, title: "Team Standup", type: "internal", date: "2026-02-24", time: "9:00 AM", lawyer: "All" },
-    { id: 7, title: "DEF Corp — Hearing (Conflict!)", type: "hearing", date: "2026-02-24", time: "10:00 AM", lawyer: "Adv. Rohan", case: "VDT-2024-004", location: "District Court Pune", conflict: true },
-    { id: 8, title: "Sharma — Limitation Expires", type: "limitation", date: "2026-03-15", time: "EOD", lawyer: "Adv. Prit", case: "VDT-2024-001" },
-    { id: 9, title: "Review Bail Application", type: "reminder", date: "2026-02-24", time: "5:00 PM", lawyer: "Adv. Prit" },
-    { id: 10, title: "CloudNet — Evidence Deadline", type: "deadline", date: "2026-02-27", time: "EOD", lawyer: "Adv. Meera", case: "VDT-2024-006" },
-    { id: 11, title: "Gupta Estate — Initial Consultation", type: "meeting", date: "2026-02-28", time: "11:00 AM", lawyer: "Adv. Priya", case: "VDT-2024-005", location: "Office" },
-    { id: 12, title: "GreenTech — Compliance Review", type: "internal", date: "2026-02-26", time: "4:00 PM", lawyer: "Adv. Rohan" },
-];
 
 const courtHolidays = [
     { date: "Feb 26 (Wed)", name: "Maha Shivaratri", jurisdiction: "All Courts — Maharashtra" },
@@ -53,9 +38,6 @@ const courtHolidays = [
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const monthDates = Array.from({ length: 28 }, (_, i) => i + 1);
-
-const lawyerFilters = ["All", "Adv. Prit", "Adv. Meera", "Adv. Rohan", "Adv. Priya"];
-
 const integrations = [
     { name: "Google Calendar", status: "Connected", icon: "G" },
     { name: "Outlook 365", status: "Not Connected", icon: "O" },
@@ -65,16 +47,109 @@ const integrations = [
 /* ─── Component ─── */
 
 export default function CalendarPage() {
+    const { data: session } = useSession();
     const [view, setView] = useState<ViewMode>("weekly");
     const [showModal, setShowModal] = useState(false);
     const [lawyerFilter, setLawyerFilter] = useState("All");
+    const [events, setEvents] = useState<CalEvent[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // New event form state
+    const [newTitle, setNewTitle] = useState("");
+    const [newType, setNewType] = useState<EventType>("hearing");
+    const [newDate, setNewDate] = useState("");
+    const [newTime, setNewTime] = useState("");
+    const [newCase, setNewCase] = useState("");
+    const [newLocation, setNewLocation] = useState("");
+    const [newRecurring, setNewRecurring] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+
+    // Fetch events from API
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
+    async function fetchEvents() {
+        try {
+            const res = await fetch("/api/events");
+            if (res.ok) {
+                const data = await res.json();
+                setEvents(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch events:", err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // Derive lawyer filters from real data
+    const lawyerFilters = ["All", ...Array.from(new Set(events.map(e => e.lawyer)))];
 
     const filteredEvents = lawyerFilter === "All"
         ? events
         : events.filter(e => e.lawyer === lawyerFilter || e.lawyer === "All");
 
-    const todayEvents = filteredEvents.filter(e => e.date === "2026-02-24");
+    const today = new Date().toISOString().slice(0, 10);
+    const todayEvents = filteredEvents.filter(e => e.date === today);
     const conflicts = events.filter(e => e.conflict);
+
+    // Get the reference Monday for the weekly view
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+
+    function getWeekDateStr(offset: number) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + offset);
+        return d.toISOString().slice(0, 10);
+    }
+
+    function formatWeekRange() {
+        const end = new Date(monday);
+        end.setDate(monday.getDate() + 6);
+        const opts: Intl.DateTimeFormatOptions = { month: "long", day: "numeric" };
+        return `${monday.toLocaleDateString("en-US", opts)} — ${end.toLocaleDateString("en-US", { ...opts, year: "numeric" })}`;
+    }
+
+    // Submit new event
+    async function handleCreateEvent() {
+        if (!newTitle || !newDate || !newTime) {
+            toast.error("Title, date, and time are required");
+            return;
+        }
+        setSubmitting(true);
+        try {
+            const res = await fetch("/api/events", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: newTitle,
+                    type: newType,
+                    date: newDate,
+                    time: newTime,
+                    lawyer: session?.user?.name?.split(" ")[0] === "Adv." ? session?.user?.name : `Adv. ${session?.user?.name?.split(" ")[0] || "User"}`,
+                    caseRef: newCase || null,
+                    location: newLocation || null,
+                    recurring: newRecurring,
+                }),
+            });
+            if (res.ok) {
+                toast.success("Event created");
+                setShowModal(false);
+                setNewTitle(""); setNewType("hearing"); setNewDate(""); setNewTime(""); setNewCase(""); setNewLocation(""); setNewRecurring(false);
+                fetchEvents();
+            } else {
+                const err = await res.json();
+                toast.error(err.error || "Failed to create event");
+            }
+        } catch {
+            toast.error("Network error");
+        } finally {
+            setSubmitting(false);
+        }
+    }
 
     const views: { id: ViewMode; label: string }[] = [
         { id: "daily", label: "Day" },
@@ -83,6 +158,15 @@ export default function CalendarPage() {
         { id: "agenda", label: "Agenda" },
         { id: "timeline", label: "Timeline" },
     ];
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="w-6 h-6 animate-spin text-neutral" />
+                <span className="ml-2 font-mono text-sm text-neutral">Loading calendar...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-6xl mx-auto pb-12 flex flex-col">
@@ -132,11 +216,21 @@ export default function CalendarPage() {
                     </select>
                 </div>
                 <div className="flex items-center border border-ink px-3 ml-auto">
-                    <button className="text-neutral hover:text-ink transition-colors mr-3"><ChevronLeft className="w-4 h-4" strokeWidth={1.5} /></button>
-                    <span className="font-serif text-sm font-bold text-ink">February 24 — March 2, 2026</span>
-                    <button className="text-neutral hover:text-ink transition-colors ml-3"><ChevronRight className="w-4 h-4" strokeWidth={1.5} /></button>
+                    <span className="font-serif text-sm font-bold text-ink">{formatWeekRange()}</span>
                 </div>
             </div>
+
+            {/* ── Empty State ── */}
+            {events.length === 0 && (
+                <div className="border border-ink mb-6 px-8 py-12 text-center">
+                    <CalendarIcon className="w-8 h-8 text-neutral mx-auto mb-3" strokeWidth={1} />
+                    <p className="font-serif text-lg text-ink mb-1">No Events Scheduled</p>
+                    <p className="text-sm font-sans text-neutral mb-4">Create your first event to get started.</p>
+                    <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-ink text-newsprint font-sans text-[10px] font-bold uppercase tracking-wider hover:bg-ink/90 transition-colors">
+                        <Plus className="w-3 h-3 mr-1.5 inline" strokeWidth={1.5} /> Create Event
+                    </button>
+                </div>
+            )}
 
             {/* ── Conflict Alert ── */}
             {conflicts.length > 0 && (
@@ -145,26 +239,22 @@ export default function CalendarPage() {
                     <div className="flex-1">
                         <span className="font-sans text-[10px] font-bold text-accent uppercase tracking-wider">Scheduling Conflict Detected</span>
                         <p className="text-[11px] font-sans text-ink mt-0.5">
-                            {conflicts.map(c => c.title).join(", ")} — overlapping at 10:00 AM on Feb 24
+                            {conflicts.map(c => c.title).join(", ")}
                         </p>
                     </div>
-                    <button onClick={() => toast("RESOLVING CONFLICT...")} className="text-[9px] font-sans font-bold bg-accent text-newsprint px-3 py-1 uppercase tracking-wider hover:bg-accent/90 transition-colors shrink-0">
-                        Resolve
-                    </button>
                 </div>
             )}
 
             {/* ── Calendar Grid (Weekly View) ── */}
-            {(view === "weekly" || view === "daily" || view === "monthly") && (
+            {(view === "weekly" || view === "daily" || view === "monthly") && events.length > 0 && (
                 <div className="border border-ink mb-6">
                     <div className="h-9 border-b border-ink px-4 flex items-center">
                         <span className="font-sans text-[10px] font-bold tracking-widest uppercase text-ink">
-                            {view === "monthly" ? "February 2026" : view === "daily" ? "Monday, February 24" : "Week of Feb 24"}
+                            {view === "monthly" ? "This Month" : view === "daily" ? `Today — ${today}` : `Week of ${monday.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
                         </span>
                     </div>
 
                     {view === "monthly" ? (
-                        /* Monthly Grid */
                         <div>
                             <div className="grid grid-cols-7 border-b border-ink">
                                 {weekDays.map(d => (
@@ -173,13 +263,16 @@ export default function CalendarPage() {
                             </div>
                             <div className="grid grid-cols-7">
                                 {monthDates.map((d) => {
-                                    const dayEvents = filteredEvents.filter(e => e.date === `2026-02-${String(d).padStart(2, '0')}`);
-                                    const isToday = d === 24;
+                                    const month = now.getMonth() + 1;
+                                    const year = now.getFullYear();
+                                    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                                    const dayEvents = filteredEvents.filter(e => e.date === dateStr);
+                                    const isToday = dateStr === today;
                                     return (
                                         <div key={d} className={`min-h-[80px] p-1.5 border-r border-b border-ink/20 last:border-r-0 ${isToday ? 'bg-ink/5' : ''} hover:bg-ink/[0.03] transition-colors cursor-pointer`}>
                                             <span className={`font-mono text-[10px] ${isToday ? 'bg-ink text-newsprint px-1.5 py-0.5 font-bold' : 'text-neutral'}`}>{d}</span>
                                             {dayEvents.slice(0, 2).map(ev => (
-                                                <div key={ev.id} className={`mt-1 text-[8px] font-sans font-bold text-newsprint px-1 py-0.5 truncate ${eventTypeConfig[ev.type].color}`}>
+                                                <div key={ev.id} className={`mt-1 text-[8px] font-sans font-bold text-newsprint px-1 py-0.5 truncate ${eventTypeConfig[ev.type]?.color || 'bg-ink'}`}>
                                                     {ev.title.slice(0, 20)}
                                                 </div>
                                             ))}
@@ -190,7 +283,6 @@ export default function CalendarPage() {
                             </div>
                         </div>
                     ) : view === "daily" ? (
-                        /* Daily View */
                         <div className="divide-y divide-ink/10">
                             {Array.from({ length: 10 }, (_, i) => i + 8).map(hour => {
                                 const hourEvents = todayEvents.filter(e => {
@@ -206,7 +298,7 @@ export default function CalendarPage() {
                                         </span>
                                         <div className="flex-1 px-3 py-1.5 flex flex-wrap gap-1.5">
                                             {hourEvents.map(ev => (
-                                                <div key={ev.id} className={`${eventTypeConfig[ev.type].color} ${ev.conflict ? 'ring-2 ring-accent' : ''} text-newsprint px-2 py-1 text-[10px] font-sans font-bold flex items-center gap-1.5`}>
+                                                <div key={ev.id} className={`${eventTypeConfig[ev.type]?.color || 'bg-ink'} ${ev.conflict ? 'ring-2 ring-accent' : ''} text-newsprint px-2 py-1 text-[10px] font-sans font-bold flex items-center gap-1.5`}>
                                                     {ev.title}
                                                     {ev.location && <span className="text-newsprint/70 font-mono text-[9px]">· {ev.location}</span>}
                                                 </div>
@@ -220,21 +312,26 @@ export default function CalendarPage() {
                         /* Weekly View */
                         <div>
                             <div className="grid grid-cols-7 border-b border-ink">
-                                {weekDays.map((d, i) => (
-                                    <div key={d} className={`text-center py-2 border-r border-ink last:border-r-0 ${i === 0 ? 'bg-ink/5' : ''}`}>
-                                        <span className="text-[9px] font-sans font-bold text-neutral uppercase tracking-widest block">{d}</span>
-                                        <span className={`font-mono text-sm ${i === 0 ? 'font-bold text-ink' : 'text-neutral'}`}>{24 + i}</span>
-                                    </div>
-                                ))}
+                                {weekDays.map((d, i) => {
+                                    const dateStr = getWeekDateStr(i);
+                                    const isToday2 = dateStr === today;
+                                    return (
+                                        <div key={d} className={`text-center py-2 border-r border-ink last:border-r-0 ${isToday2 ? 'bg-ink/5' : ''}`}>
+                                            <span className="text-[9px] font-sans font-bold text-neutral uppercase tracking-widest block">{d}</span>
+                                            <span className={`font-mono text-sm ${isToday2 ? 'font-bold text-ink' : 'text-neutral'}`}>{new Date(dateStr).getDate()}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                             <div className="grid grid-cols-7 min-h-[300px]">
                                 {weekDays.map((_, i) => {
-                                    const dateStr = `2026-02-${24 + i}`;
+                                    const dateStr = getWeekDateStr(i);
                                     const dayEvs = filteredEvents.filter(e => e.date === dateStr);
+                                    const isToday2 = dateStr === today;
                                     return (
-                                        <div key={i} className={`border-r border-ink last:border-r-0 p-1.5 ${i === 0 ? 'bg-ink/[0.03]' : ''}`}>
+                                        <div key={i} className={`border-r border-ink last:border-r-0 p-1.5 ${isToday2 ? 'bg-ink/[0.03]' : ''}`}>
                                             {dayEvs.map(ev => {
-                                                const cfg = eventTypeConfig[ev.type];
+                                                const cfg = eventTypeConfig[ev.type] || eventTypeConfig.hearing;
                                                 return (
                                                     <div key={ev.id} className={`mb-1.5 p-1.5 ${cfg.color} ${ev.conflict ? 'ring-2 ring-accent' : ''} text-newsprint cursor-pointer hover:opacity-90 transition-opacity`}>
                                                         <p className="text-[8px] font-sans font-bold leading-tight">{ev.title}</p>
@@ -252,14 +349,14 @@ export default function CalendarPage() {
             )}
 
             {/* ── Agenda View ── */}
-            {view === "agenda" && (
+            {view === "agenda" && events.length > 0 && (
                 <div className="border border-ink mb-6">
                     <div className="h-9 border-b border-ink px-4 flex items-center section-inverted">
-                        <span className="font-sans text-[10px] font-bold tracking-widest uppercase text-newsprint">Agenda — Next 7 Days</span>
+                        <span className="font-sans text-[10px] font-bold tracking-widest uppercase text-newsprint">Agenda — All Events</span>
                     </div>
                     <div className="divide-y divide-ink/10">
-                        {filteredEvents.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)).map(ev => {
-                            const cfg = eventTypeConfig[ev.type];
+                        {[...filteredEvents].sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)).map(ev => {
+                            const cfg = eventTypeConfig[ev.type] || eventTypeConfig.hearing;
                             const Icon = cfg.icon;
                             return (
                                 <div key={ev.id} className={`flex items-center px-4 py-3 hover:bg-ink/[0.03] transition-colors cursor-pointer ${ev.conflict ? 'bg-accent/5' : ''}`}>
@@ -269,13 +366,13 @@ export default function CalendarPage() {
                                     <div className="flex-1 min-w-0">
                                         <p className="font-sans text-xs font-bold text-ink">{ev.title}</p>
                                         <p className="text-[9px] font-mono text-neutral mt-0.5">
-                                            {ev.case || "No case"} · {ev.lawyer}
+                                            {ev.caseRef || "No case"} · {ev.lawyer}
                                             {ev.location && ` · ${ev.location}`}
                                         </p>
                                     </div>
                                     <div className="text-right shrink-0 ml-3">
-                                        <p className={`font-mono text-[10px] font-bold ${ev.date === '2026-02-24' ? 'text-accent' : 'text-ink'}`}>
-                                            {ev.date === '2026-02-24' ? 'Today' : ev.date.slice(5)}
+                                        <p className={`font-mono text-[10px] font-bold ${ev.date === today ? 'text-accent' : 'text-ink'}`}>
+                                            {ev.date === today ? 'Today' : ev.date.slice(5)}
                                         </p>
                                         <p className="text-[9px] font-mono text-neutral">{ev.time}</p>
                                     </div>
@@ -294,18 +391,20 @@ export default function CalendarPage() {
                         <span className="font-sans text-[10px] font-bold tracking-widest uppercase text-ink">Case Milestones — Gantt View</span>
                     </div>
                     <div className="p-4 overflow-x-auto">
-                        {/* Timeline header */}
                         <div className="flex mb-3">
                             <div className="w-40 shrink-0" />
-                            {Array.from({ length: 14 }, (_, i) => (
-                                <div key={i} className="flex-1 min-w-[50px] text-center">
-                                    <span className={`text-[8px] font-mono ${i === 0 ? 'font-bold text-ink' : 'text-neutral'}`}>
-                                        {`${24 + i > 28 ? `Mar ${24 + i - 28}` : `Feb ${24 + i}`}`}
-                                    </span>
-                                </div>
-                            ))}
+                            {Array.from({ length: 14 }, (_, i) => {
+                                const d = new Date(monday);
+                                d.setDate(monday.getDate() + i);
+                                return (
+                                    <div key={i} className="flex-1 min-w-[50px] text-center">
+                                        <span className={`text-[8px] font-mono ${i === 0 ? 'font-bold text-ink' : 'text-neutral'}`}>
+                                            {d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                        </span>
+                                    </div>
+                                );
+                            })}
                         </div>
-                        {/* Timeline rows */}
                         {[
                             { case: "Sharma v. State", bars: [{ start: 0, width: 3, label: "Discovery", color: "bg-ink" }, { start: 4, width: 1, label: "Deposition", color: "bg-neutral" }, { start: 8, width: 2, label: "Filing", color: "bg-accent" }] },
                             { case: "Nexus IP", bars: [{ start: 1, width: 1, label: "Deadline", color: "bg-accent" }, { start: 5, width: 4, label: "Motion Prep", color: "bg-ink" }] },
@@ -423,44 +522,43 @@ export default function CalendarPage() {
                         </div>
                         <div className="p-5 space-y-4">
                             <div>
-                                <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Title</label>
-                                <input className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" placeholder="Event name..." />
+                                <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Title *</label>
+                                <input value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" placeholder="Event name..." />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Event Type</label>
-                                <select className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink cursor-pointer">
-                                    {Object.entries(eventTypeConfig).map(([k, v]) => <option key={k}>{v.label}</option>)}
+                                <select value={newType} onChange={e => setNewType(e.target.value as EventType)} className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink cursor-pointer">
+                                    {Object.entries(eventTypeConfig).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Date</label>
-                                    <input type="date" className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" />
+                                    <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Date *</label>
+                                    <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Time</label>
-                                    <input type="time" className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" />
+                                    <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Time *</label>
+                                    <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)} className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Case (Optional)</label>
-                                <select className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink cursor-pointer">
-                                    <option>None</option>
-                                    <option>VDT-2024-001 — Sharma v. State</option>
-                                    <option>VDT-2024-002 — Nexus IP</option>
-                                    <option>VDT-2024-003 — Horizon Corp</option>
-                                </select>
+                                <input value={newCase} onChange={e => setNewCase(e.target.value)} className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" placeholder="e.g. VDT-2024-001" />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-sans font-bold text-neutral mb-1.5 uppercase tracking-wider">Location</label>
-                                <input className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" placeholder="Court, office, or virtual..." />
+                                <input value={newLocation} onChange={e => setNewLocation(e.target.value)} className="w-full border-b border-ink py-2 font-mono text-sm bg-transparent outline-none text-ink" placeholder="Court, office, or virtual..." />
                             </div>
                             <label className="flex items-center cursor-pointer">
-                                <input type="checkbox" className="mr-2.5 accent-ink" />
+                                <input type="checkbox" checked={newRecurring} onChange={e => setNewRecurring(e.target.checked)} className="mr-2.5 accent-ink" />
                                 <span className="font-sans text-[11px] font-semibold text-ink">Recurring event</span>
                             </label>
-                            <button onClick={() => { setShowModal(false); toast.success("EVENT CREATED"); }} className="w-full py-2.5 bg-ink text-newsprint font-sans text-[10px] font-bold uppercase tracking-widest hover:bg-ink/90 transition-colors">
-                                Create Event
+                            <button
+                                onClick={handleCreateEvent}
+                                disabled={submitting}
+                                className="w-full py-2.5 bg-ink text-newsprint font-sans text-[10px] font-bold uppercase tracking-widest hover:bg-ink/90 transition-colors disabled:opacity-50"
+                            >
+                                {submitting ? "Creating..." : "Create Event"}
                             </button>
                         </div>
                     </div>
