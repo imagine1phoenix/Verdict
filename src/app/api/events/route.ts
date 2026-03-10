@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { calendarEvents } from "@/lib/schema";
 import { eq, desc } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
     try {
@@ -38,6 +41,20 @@ export async function POST(req: NextRequest) {
             })
             .returning();
 
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "create",
+                resourceType: "event",
+                resourceId: newEvent.id,
+                resourceName: newEvent.title,
+                details: newEvent,
+            });
+        }
+
         return NextResponse.json(newEvent, { status: 201 });
     } catch (error) {
         console.error("POST /api/events error:", error);
@@ -52,6 +69,20 @@ export async function DELETE(req: NextRequest) {
         if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
         await db.delete(calendarEvents).where(eq(calendarEvents.id, parseInt(id)));
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "delete",
+                resourceType: "event",
+                resourceId: parseInt(id),
+                resourceName: `Event ID ${id}`,
+                details: { deletedId: id },
+            });
+        }
+
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("DELETE /api/events error:", error);

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
     try {
@@ -61,6 +62,17 @@ export async function POST(req: NextRequest) {
                 isActive: true,
             })
             .returning();
+
+        await logAudit({
+            userId: newUser.id,
+            userName: newUser.name,
+            userEmail: newUser.email,
+            action: "register",
+            resourceType: "user",
+            resourceId: newUser.id,
+            resourceName: newUser.email,
+            details: { provider: "credentials" },
+        });
 
         return NextResponse.json(
             {

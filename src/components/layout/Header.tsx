@@ -26,7 +26,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
         .join("")
         .toUpperCase()
         .slice(0, 2);
-    const userRole = "Member"; // Default role display
+    const userRole = session?.user?.role || "member";
 
     // Hydrate dark mode from localStorage
     useEffect(() => {
@@ -125,9 +125,11 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                 <div className="flex items-center justify-center px-3 md:px-6 relative cursor-pointer hover:bg-ink/5 transition-colors" onClick={() => setProfileOpen(!profileOpen)}>
                     <div className="text-right hidden xl:block mr-4">
                         <p className="text-xs font-sans font-bold uppercase tracking-wider text-ink">{userName}</p>
-                        <p className="text-[10px] font-mono text-neutral uppercase mt-0.5 tracking-wider">{userRole}</p>
+                        <p className={`text-[10px] font-mono mt-0.5 tracking-wider uppercase font-bold ${userRole === 'admin' ? 'text-accent' : 'text-neutral'}`}>
+                            {userRole}
+                        </p>
                     </div>
-                    <div className="w-8 h-8 md:w-10 md:h-10 border border-ink bg-newsprint flex items-center justify-center font-serif font-bold text-xs md:text-sm text-ink shrink-0">
+                    <div className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center font-serif font-bold text-xs md:text-sm shrink-0 ${userRole === 'admin' ? 'border-[2px] border-accent bg-newsprint text-accent' : 'border border-ink bg-newsprint text-ink'}`}>
                         {userInitials}
                     </div>
 

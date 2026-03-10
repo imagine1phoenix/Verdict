@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { cases } from "@/lib/schema";
 import { eq } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
     request: NextRequest,
@@ -42,6 +45,20 @@ export async function PATCH(
 
         if (!updated) {
             return NextResponse.json({ error: "Case not found" }, { status: 404 });
+        }
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "update",
+                resourceType: "case",
+                resourceId: updated.id,
+                resourceName: updated.name,
+                details: body,
+            });
         }
 
         return NextResponse.json(updated);

@@ -604,3 +604,16 @@ Before marking any feature as "done", verify:
 - [ ] Delete operations ask for confirmation
 - [ ] No console warnings or errors in browser
 - [ ] Newsprint aesthetic maintained (no rounded corners, correct fonts, correct colors)
+
+## 🔒 ADMIN DASHBOARD RULES
+
+1. All `/admin/*` routes require `role="admin"` — enforced at BOTH middleware and component level
+2. All `/api/admin/*` routes MUST call `requireAdmin()` before any logic
+3. Admin actions MUST be logged to `audit_logs` — no exceptions
+4. Audit logs are IMMUTABLE — never add edit/delete for audit_logs
+5. Destructive admin actions require type-to-confirm dialog
+6. Admin cannot modify their own role or deactivate themselves
+7. System must always have at least 1 active admin user
+8. System settings are stored in database, never hardcoded
+9. Announcements respect role-based targeting
+10. Admin sidebar is separate from main sidebar — different component

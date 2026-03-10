@@ -3,8 +3,12 @@ import { db } from "@/lib/db";
 import {
     cases, events, activities, users, calendarEvents, teamMessages, tasks, timeEntries,
     documents, mockTrials, proofreadingJobs, evidence, knowledgeArticles, pastTrials,
-    loginHistory, analyticsSnapshots
+    loginHistory, analyticsSnapshots, systemSettings, announcements, auditLogs
 } from "@/lib/schema";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import bcrypt from "bcryptjs";
 
 // ─── Existing seed data ──────────────────────────────────────────────────────
 
@@ -43,7 +47,7 @@ const seedActivities = [
 ];
 
 const seedUsers = [
-    { name: "Adv. Prit Thacker", email: "prit@verdictlaw.in", password: "password123", role: "Senior Partner", avatar: "PT", status: "online" as const, activeCases: 4, hoursThisWeek: 32, viewing: "Sharma v. State — Defense Brief", provider: "credentials" as const },
+    { name: "Adv. Prit Thacker", email: "prit@verdictlaw.in", password: "password123", role: "admin", avatar: "PT", status: "online" as const, activeCases: 4, hoursThisWeek: 32, viewing: "Sharma v. State — Defense Brief", provider: "credentials" as const },
     { name: "Adv. Meera Shah", email: "meera@verdictlaw.in", password: "password123", role: "Associate", avatar: "MS", status: "online" as const, activeCases: 3, hoursThisWeek: 28, viewing: "Nexus IP — Patent Claims", provider: "credentials" as const },
     { name: "Ravi Kumar", email: "ravi@verdictlaw.in", password: "password123", role: "Paralegal", avatar: "RK", status: "online" as const, activeCases: 2, hoursThisWeek: 40, viewing: "Evidence Vault — Bates Indexing", provider: "credentials" as const },
     { name: "Adv. Rohan Iyer", email: "rohan@verdictlaw.in", password: "password123", role: "Associate", avatar: "RI", status: "away" as const, activeCases: 2, hoursThisWeek: 20, viewing: null, provider: "credentials" as const },
@@ -189,11 +193,29 @@ const seedPastTrials = [
     { caseName: "State v. Anil Deshmukh (Prevention of Corruption)", court: "Special CBI Court — Mumbai", judge: "Hon. Special Judge M. Gokhale", verdict: "dismissed", dateConcluded: "2023-09-25", durationDays: 365, leadAttorney: "Adv. Prit Thacker", team: [{ name: "Adv. Prit Thacker", role: "Lead" }, { name: "Adv. Rohan Iyer", role: "Associate" }, { name: "Ravi Kumar", role: "Paralegal" }], summary: "Prevention of Corruption Act case. Charges dismissed on grounds of insufficient evidence and procedural irregularities in the CBI investigation.", keyArguments: ["CBI investigation had procedural irregularities under Section 17A", "Trap proceedings were not conducted per established protocol", "Key prosecution witness turned hostile"], opposingCounsel: "CBI Special Public Prosecutor", lessonsLearned: "In corruption cases, procedural compliance by investigating agency is the first line of defense." },
 ];
 
+const seedSettings = [
+    { key: "SITE_NAME", value: "Verdict Platform", label: "Site Name", description: "Global application name display", category: "general" },
+    { key: "MAINTENANCE_MODE", value: "false", label: "Maintenance Mode", description: "Enable to lock out non-admin users", category: "system" },
+    { key: "MAX_FILE_UPLOAD_MB", value: "50", label: "Max Upload Size", description: "Max footprint for document indexing", category: "system" }
+];
+
+const seedAnnouncements = [
+    { title: "Verdict Admin Module Live", content: "The new Administration panel is actively tracking system events and configuration overrides.", type: "info", targetRoles: ["all"], isActive: true },
+    { title: "Database Architecture Upgraded", content: "Storage layer updated to Neon Postgres V14. Drizzle ORM integrated.", type: "success", targetRoles: ["all"], isActive: true }
+];
+
+const seedAuditLogs = [
+    { action: "system_init", resourceType: "system", resourceName: "Initial Configuration", details: { details: "System seeded successfully" } }
+];
+
 // ─── Seed handler ────────────────────────────────────────────────────────────
 
 export async function POST() {
     try {
         // Clear all data — children/dependents first
+        await db.delete(systemSettings);
+        await db.delete(announcements);
+        await db.delete(auditLogs);
         await db.delete(analyticsSnapshots);
         await db.delete(proofreadingJobs);
         await db.delete(documents);
@@ -211,8 +233,14 @@ export async function POST() {
         await db.delete(loginHistory);
         await db.delete(users);
 
+        // Hash user passwords before inserting
+        const hashedUsers = await Promise.all(seedUsers.map(async (user) => ({
+            ...user,
+            password: user.password ? await bcrypt.hash(user.password, 10) : user.password,
+        })));
+
         // Insert users first (others may reference them)
-        await db.insert(users).values(seedUsers);
+        await db.insert(users).values(hashedUsers);
 
         // Insert all other data in parallel
         await Promise.all([
@@ -229,7 +257,23 @@ export async function POST() {
             db.insert(evidence).values(seedEvidence),
             db.insert(knowledgeArticles).values(seedKnowledgeArticles),
             db.insert(pastTrials).values(seedPastTrials),
+            db.insert(systemSettings).values(seedSettings),
+            db.insert(announcements).values(seedAnnouncements),
+            db.insert(auditLogs).values(seedAuditLogs),
         ]);
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "reset_database",
+                resourceType: "system",
+                resourceName: "Entire Database",
+                details: { type: "seed" },
+            });
+        }
 
         return NextResponse.json({
             message: "Database seeded successfully",
@@ -248,9 +292,12 @@ export async function POST() {
                 evidence: seedEvidence.length,
                 knowledgeArticles: seedKnowledgeArticles.length,
                 pastTrials: seedPastTrials.length,
+                settings: seedSettings.length,
+                announcements: seedAnnouncements.length,
+                auditLogs: seedAuditLogs.length,
             },
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error("POST /api/seed error:", error);
         return NextResponse.json({ error: "Failed to seed database", detail: String(error) }, { status: 500 });
     }

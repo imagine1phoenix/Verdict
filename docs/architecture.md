@@ -83,6 +83,18 @@ src/
 └── middleware.ts                     # Route protection
 ```
 
+## Admin Navigation Structure
+
+```text
+VERDICT ADMIN
+├── Overview (/admin)
+├── User Management (/admin/users)
+├── Audit Logs (/admin/audit-logs)
+├── Announcements (/admin/announcements)
+├── System Settings (/admin/settings)
+└── Database (/admin/database)
+```
+
 ## External Services
 
 | Service | Purpose |

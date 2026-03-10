@@ -264,3 +264,47 @@ export const analyticsSnapshots = pgTable("analytics_snapshots", {
     metrics: jsonb("metrics").default({}).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ─── Admin Tables ────────────────────────────────────────────────────────────
+
+export const auditLogs = pgTable("audit_logs", {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").references(() => users.id, { onDelete: "set null" }),
+    userName: text("user_name"),
+    userEmail: text("user_email"),
+    action: varchar("action", { length: 50 }).notNull(),
+    resourceType: varchar("resource_type", { length: 50 }).notNull(),
+    resourceId: integer("resource_id"),
+    resourceName: text("resource_name"),
+    details: jsonb("details"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const systemSettings = pgTable("system_settings", {
+    id: serial("id").primaryKey(),
+    key: varchar("key", { length: 100 }).notNull().unique(),
+    value: jsonb("value").notNull(),
+    category: varchar("category", { length: 50 }).notNull(),
+    label: text("label").notNull(),
+    description: text("description"),
+    updatedBy: integer("updated_by").references(() => users.id, { onDelete: "set null" }),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const announcements = pgTable("announcements", {
+    id: serial("id").primaryKey(),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    type: varchar("type", { length: 20 }).notNull(),
+    authorId: integer("author_id").references(() => users.id, { onDelete: "set null" }),
+    authorName: text("author_name"),
+    isActive: boolean("is_active").default(true).notNull(),
+    isPinned: boolean("is_pinned").default(false).notNull(),
+    expiresAt: timestamp("expires_at"),
+    targetRoles: jsonb("target_roles").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

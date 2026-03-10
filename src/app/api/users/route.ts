@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
     try {
@@ -53,6 +56,21 @@ export async function PATCH(req: NextRequest) {
             });
 
         if (!updated) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "update",
+                resourceType: "user",
+                resourceId: updated.id,
+                resourceName: updated.email,
+                details: allowedFields,
+            });
+        }
+
         return NextResponse.json(updated);
     } catch (error) {
         console.error("PATCH /api/users error:", error);

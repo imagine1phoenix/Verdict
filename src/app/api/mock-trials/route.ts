@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { mockTrials } from "@/lib/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
     try {
@@ -46,6 +49,21 @@ export async function POST(req: NextRequest) {
             score: body.score || null,
             feedback: body.feedback || [],
         }).returning();
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "create",
+                resourceType: "mock_trial",
+                resourceId: created.id,
+                resourceName: created.title,
+                details: created,
+            });
+        }
+
         return NextResponse.json(created, { status: 201 });
     } catch (error) {
         console.error("POST /api/mock-trials error:", error);
@@ -65,6 +83,21 @@ export async function PATCH(req: NextRequest) {
         if (!updated) {
             return NextResponse.json({ error: "Mock trial not found" }, { status: 404 });
         }
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "update",
+                resourceType: "mock_trial",
+                resourceId: updated.id,
+                resourceName: updated.title,
+                details: updates,
+            });
+        }
+
         return NextResponse.json(updated);
     } catch (error) {
         console.error("PATCH /api/mock-trials error:", error);
@@ -83,6 +116,21 @@ export async function DELETE(req: NextRequest) {
         if (!deleted) {
             return NextResponse.json({ error: "Mock trial not found" }, { status: 404 });
         }
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "delete",
+                resourceType: "mock_trial",
+                resourceId: Number(id),
+                resourceName: `Mock Trial ID ${id}`,
+                details: { deletedId: id },
+            });
+        }
+
         return NextResponse.json({ message: "Mock trial deleted" });
     } catch (error) {
         console.error("DELETE /api/mock-trials error:", error);

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { cases } from "@/lib/schema";
 import { eq, desc } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(request: NextRequest) {
     try {
@@ -53,6 +56,20 @@ export async function POST(request: NextRequest) {
                 relatedCases: body.relatedCases || [],
             })
             .returning();
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "create",
+                resourceType: "case",
+                resourceId: newCase.id,
+                resourceName: newCase.name,
+                details: newCase,
+            });
+        }
 
         return NextResponse.json(newCase, { status: 201 });
     } catch (error) {

@@ -31,6 +31,17 @@
 - [ ] Extended global search
 - [ ] Notifications system (real alerts)
 
+## 🔄 Phase 2.5 — Admin Dashboard
+
+- [ ] Admin authentication & authorization
+- [ ] Admin overview dashboard
+- [ ] User management (CRUD + role management)
+- [ ] Audit logging system
+- [ ] Announcement system
+- [ ] System settings management
+- [ ] Database management tools
+- [ ] Announcement banner in main app
+
 ## 📋 Phase 3 — PLANNED
 
 - [ ] Real AI integration (OpenAI/Anthropic)

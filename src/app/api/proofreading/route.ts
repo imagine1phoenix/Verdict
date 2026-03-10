@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { proofreadingJobs } from "@/lib/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
     try {
@@ -44,6 +47,21 @@ export async function POST(req: NextRequest) {
             issuesFound: body.issuesFound || 0,
             dueDate: body.dueDate || null,
         }).returning();
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "create",
+                resourceType: "proofreading_job",
+                resourceId: created.id,
+                resourceName: created.documentTitle || undefined,
+                details: created,
+            });
+        }
+
         return NextResponse.json(created, { status: 201 });
     } catch (error) {
         console.error("POST /api/proofreading error:", error);
@@ -66,6 +84,21 @@ export async function PATCH(req: NextRequest) {
         if (!updated) {
             return NextResponse.json({ error: "Proofreading job not found" }, { status: 404 });
         }
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "update",
+                resourceType: "proofreading_job",
+                resourceId: updated.id,
+                resourceName: updated.documentTitle || undefined,
+                details: updates,
+            });
+        }
+
         return NextResponse.json(updated);
     } catch (error) {
         console.error("PATCH /api/proofreading error:", error);
@@ -84,6 +117,21 @@ export async function DELETE(req: NextRequest) {
         if (!deleted) {
             return NextResponse.json({ error: "Proofreading job not found" }, { status: 404 });
         }
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "delete",
+                resourceType: "proofreading_job",
+                resourceId: Number(id),
+                resourceName: `Proofreading Job ID ${id}`,
+                details: { deletedId: id },
+            });
+        }
+
         return NextResponse.json({ message: "Proofreading job deleted" });
     } catch (error) {
         console.error("DELETE /api/proofreading error:", error);

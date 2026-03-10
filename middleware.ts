@@ -18,9 +18,10 @@ export function middleware(request: NextRequest) {
 
     const isAuthenticated = !!(legacyAuth || nextAuthSession)
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route)
+    const isAdminRoute = pathname.startsWith('/admin')
 
-    // If user is NOT authenticated and trying to access protected route
-    if (!isAuthenticated && !isPublicRoute) {
+    // If user is NOT authenticated and trying to access protected route or admin route
+    if (!isAuthenticated && (!isPublicRoute || isAdminRoute)) {
         const loginUrl = new URL('/login', request.url)
         loginUrl.searchParams.set('redirect', pathname)
         return NextResponse.redirect(loginUrl)

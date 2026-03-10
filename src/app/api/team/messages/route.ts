@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { teamMessages } from "@/lib/schema";
 import { eq, desc } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import authOptions from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
     try {
@@ -44,6 +47,20 @@ export async function POST(req: NextRequest) {
                 thread: body.thread || "General",
             })
             .returning();
+
+        const session = await getServerSession(authOptions);
+        if (session && session.user) {
+            await logAudit({
+                userId: Number(session.user.id),
+                userName: session.user.name as string,
+                userEmail: session.user.email as string,
+                action: "create",
+                resourceType: "message",
+                resourceId: msg.id,
+                resourceName: `Message in ${msg.thread}`,
+                details: { text: msg.text },
+            });
+        }
 
         return NextResponse.json(msg, { status: 201 });
     } catch (error) {

@@ -1,45 +1,36 @@
 "use client";
 
-import { Scale, Home, Calendar, FileText, History, Settings, ChevronRight, FolderOpen, Archive, BarChart3, Users, GraduationCap, Gavel, X, ShieldAlert } from "lucide-react";
+import { Home, FileText, History, Settings, ChevronRight, Archive, BarChart3, Users, X, ShieldAlert } from "lucide-react";
 import { clsx } from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
 
 const menuItems = [
-    { icon: Home, label: "Dashboard", href: "/" },
-    { icon: Scale, label: "Mock Trials", href: "/mock-trials" },
-    { icon: FileText, label: "Proofreading", href: "/proofreading" },
-    { icon: Gavel, label: "Documents", href: "/documents" },
-    { icon: FolderOpen, label: "Cases", href: "/cases" },
-    { icon: Archive, label: "Evidence", href: "/evidence" },
-    { icon: Calendar, label: "Calendar", href: "/calendar" },
-    { icon: BarChart3, label: "Analytics", href: "/analytics" },
-    { icon: Users, label: "Team", href: "/team" },
+    { icon: BarChart3, label: "Overview", href: "/admin" },
+    { icon: Users, label: "Users", href: "/admin/users" },
+    { icon: History, label: "Audit Logs", href: "/admin/audit-logs" },
+    { icon: FileText, label: "Announcements", href: "/admin/announcements" },
+    { icon: Settings, label: "Settings", href: "/admin/settings" },
+    { icon: Archive, label: "Database", href: "/admin/database" },
 ];
 
 const bottomItems = [
-    { icon: Settings, label: "Settings", href: "/settings" },
-    { icon: GraduationCap, label: "Knowledge", href: "/knowledge" },
+    { icon: Home, label: "Back to App", href: "/" },
 ];
 
-interface SidebarProps {
+interface AdminSidebarProps {
     open?: boolean;
     onClose?: () => void;
 }
 
-export default function Sidebar({ open, onClose }: SidebarProps) {
+export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
     const pathname = usePathname();
-    const { data: session } = useSession();
-    const isAdmin = session?.user?.role === "admin";
 
-    // Close sidebar on route change (mobile)
     useEffect(() => {
         onClose?.();
     }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Prevent body scroll when mobile sidebar is open
     useEffect(() => {
         if (open) {
             document.body.style.overflow = "hidden";
@@ -52,29 +43,25 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     const sidebarContent = (
         <>
             {/* Masthead / Brand */}
-            <div className="h-20 border-b-[4px] border-ink flex items-center justify-between px-6">
-                <div className="text-center flex-1">
-                    <span className="font-serif text-2xl font-bold tracking-[0.2em] text-ink uppercase block">
+            <div className="h-20 border-b-[4px] border-ink flex items-center justify-between px-6 bg-ink text-newsprint relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 opacity-10 pointer-events-none">
+                    <ShieldAlert className="w-24 h-24" />
+                </div>
+                <div className="text-center flex-1 relative z-10">
+                    <span className="font-serif text-2xl font-bold tracking-[0.2em] text-newsprint uppercase block">
                         Verdict
                     </span>
-                    <span className="text-[9px] font-mono text-neutral uppercase tracking-[0.3em]">
-                        Legal Intelligence
+                    <span className="text-[9px] font-mono text-newsprint/70 uppercase tracking-[0.3em]">
+                        Admin Override
                     </span>
                 </div>
-                {/* Mobile close button */}
-                <button onClick={onClose} className="md:hidden p-1 text-ink hover:text-accent transition-colors -mr-2">
+                <button onClick={onClose} className="md:hidden p-1 text-newsprint hover:text-accent transition-colors -mr-2 relative z-10">
                     <X className="w-5 h-5" strokeWidth={1.5} />
                 </button>
             </div>
 
-            {/* Edition info */}
-            <div className="border-b border-ink px-4 py-2 flex justify-between items-center">
-                <span className="text-[10px] font-mono text-neutral uppercase tracking-wider">Vol. I</span>
-                <span className="text-[10px] font-mono text-neutral uppercase tracking-wider">Est. 2024</span>
-            </div>
-
             {/* Main Navigation */}
-            <nav className="flex-1 py-1 flex flex-col overflow-y-auto">
+            <nav className="flex-1 py-1 flex flex-col overflow-y-auto mt-2">
                 {menuItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
@@ -88,7 +75,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                                 )}
                             >
                                 {isActive && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
+                                    <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-accent" />
                                 )}
                                 <item.icon className={clsx("w-4 h-4 shrink-0", isActive ? "text-newsprint" : "text-ink")} strokeWidth={1.5} />
                                 <span className={clsx("ml-3 font-sans text-[11px] font-semibold tracking-wider uppercase", isActive ? "text-newsprint" : "text-ink")}>
@@ -107,26 +94,12 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
             {/* Bottom nav items */}
             <div className="border-t border-ink">
-                {isAdmin && (
-                    <Link href="/admin">
-                        <div className="flex items-center px-5 py-2.5 transition-colors group border-b border-ink/10 hover:bg-ink/5 text-accent">
-                            <ShieldAlert className="w-4 h-4 text-accent" strokeWidth={1.5} />
-                            <span className="ml-3 font-sans text-[11px] font-bold uppercase tracking-wider text-accent">
-                                System Admin
-                            </span>
-                        </div>
-                    </Link>
-                )}
                 {bottomItems.map((item) => {
-                    const isActive = pathname === item.href;
                     return (
                         <Link key={item.label} href={item.href}>
-                            <div className={clsx(
-                                "flex items-center px-5 py-2.5 transition-colors group border-b border-ink/10",
-                                isActive ? "bg-ink text-newsprint" : "hover:bg-ink/5 text-ink"
-                            )}>
-                                <item.icon className={clsx("w-4 h-4", isActive ? "text-newsprint" : "text-ink")} strokeWidth={1.5} />
-                                <span className={clsx("ml-3 font-sans text-[11px] font-semibold uppercase tracking-wider", isActive ? "text-newsprint" : "text-ink")}>
+                            <div className="flex items-center px-5 py-2.5 transition-colors group border-b border-ink/10 hover:bg-ink/5 text-ink">
+                                <item.icon className="w-4 h-4 text-ink" strokeWidth={1.5} />
+                                <span className="ml-3 font-sans text-[11px] font-semibold uppercase tracking-wider text-ink">
                                     {item.label}
                                 </span>
                             </div>
@@ -136,9 +109,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-3 border-t border-ink">
+            <div className="px-4 py-3 border-t border-ink bg-ink/5">
                 <p className="text-[8px] font-mono text-neutral uppercase tracking-wider text-center leading-relaxed">
-                    © 2024 Verdict.AI<br />All rights reserved
+                    System Control<br />Authorized Personnel Only
                 </p>
             </div>
         </>
@@ -146,13 +119,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
     return (
         <>
-            {/* Desktop sidebar — always visible */}
             <aside className="hidden md:flex w-60 bg-newsprint border-r border-ink flex-col relative shrink-0">
                 {sidebarContent}
             </aside>
-
-            {/* Mobile sidebar — slide-in drawer */}
-            {/* Backdrop */}
             <div
                 className={clsx(
                     "fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-300",
@@ -160,7 +129,6 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 )}
                 onClick={onClose}
             />
-            {/* Drawer */}
             <aside
                 className={clsx(
                     "fixed left-0 top-0 bottom-0 w-72 bg-newsprint border-r border-ink flex flex-col z-50 md:hidden transition-transform duration-300 ease-in-out",
