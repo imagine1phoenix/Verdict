@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/db";
-import Case from "@/models/Case";
-import Event from "@/models/Event";
-import Activity from "@/models/Activity";
-import User from "@/models/User";
+import { db } from "@/lib/db";
+import { cases, events, activities, users } from "@/lib/schema";
 
 const seedCases = [
     {
@@ -146,31 +143,29 @@ const seedActivities = [
 ];
 
 const seedUsers = [
-    { name: "Adv. Prit Thacker", email: "prit@verdictlaw.in", password: "password123", role: "Senior Partner", avatar: "PT", status: "online", activeCases: 4, hoursThisWeek: 32, viewing: "Sharma v. State — Defense Brief" },
-    { name: "Adv. Meera Shah", email: "meera@verdictlaw.in", password: "password123", role: "Associate", avatar: "MS", status: "online", activeCases: 3, hoursThisWeek: 28, viewing: "Nexus IP — Patent Claims" },
-    { name: "Ravi Kumar", email: "ravi@verdictlaw.in", password: "password123", role: "Paralegal", avatar: "RK", status: "online", activeCases: 2, hoursThisWeek: 40, viewing: "Evidence Vault — Bates Indexing" },
-    { name: "Adv. Rohan Iyer", email: "rohan@verdictlaw.in", password: "password123", role: "Associate", avatar: "RI", status: "away", activeCases: 2, hoursThisWeek: 20, viewing: null },
-    { name: "Adv. Priya Desai", email: "priya@verdictlaw.in", password: "password123", role: "Associate", avatar: "PD", status: "offline", activeCases: 1, hoursThisWeek: 15, viewing: null },
+    { name: "Adv. Prit Thacker", email: "prit@verdictlaw.in", password: "password123", role: "Senior Partner", avatar: "PT", status: "online" as const, activeCases: 4, hoursThisWeek: 32, viewing: "Sharma v. State — Defense Brief", provider: "credentials" as const },
+    { name: "Adv. Meera Shah", email: "meera@verdictlaw.in", password: "password123", role: "Associate", avatar: "MS", status: "online" as const, activeCases: 3, hoursThisWeek: 28, viewing: "Nexus IP — Patent Claims", provider: "credentials" as const },
+    { name: "Ravi Kumar", email: "ravi@verdictlaw.in", password: "password123", role: "Paralegal", avatar: "RK", status: "online" as const, activeCases: 2, hoursThisWeek: 40, viewing: "Evidence Vault — Bates Indexing", provider: "credentials" as const },
+    { name: "Adv. Rohan Iyer", email: "rohan@verdictlaw.in", password: "password123", role: "Associate", avatar: "RI", status: "away" as const, activeCases: 2, hoursThisWeek: 20, viewing: null, provider: "credentials" as const },
+    { name: "Adv. Priya Desai", email: "priya@verdictlaw.in", password: "password123", role: "Associate", avatar: "PD", status: "offline" as const, activeCases: 1, hoursThisWeek: 15, viewing: null, provider: "credentials" as const },
 ];
 
 export async function POST() {
     try {
-        await connectDB();
-
         // Clear existing data
         await Promise.all([
-            Case.deleteMany({}),
-            Event.deleteMany({}),
-            Activity.deleteMany({}),
-            User.deleteMany({}),
+            db.delete(cases),
+            db.delete(events),
+            db.delete(activities),
+            db.delete(users),
         ]);
 
         // Insert seed data
         await Promise.all([
-            Case.insertMany(seedCases),
-            Event.insertMany(seedEvents),
-            Activity.insertMany(seedActivities),
-            User.insertMany(seedUsers),
+            db.insert(cases).values(seedCases),
+            db.insert(events).values(seedEvents),
+            db.insert(activities).values(seedActivities),
+            db.insert(users).values(seedUsers),
         ]);
 
         return NextResponse.json({

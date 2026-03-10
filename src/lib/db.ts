@@ -1,40 +1,10 @@
-import mongoose from "mongoose";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "./schema";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/verdict";
+const DATABASE_URL = process.env.DATABASE_URL!;
 
-interface MongooseCache {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
-}
+const sql = neon(DATABASE_URL);
+export const db = drizzle(sql, { schema });
 
-declare global {
-    // eslint-disable-next-line no-var
-    var mongooseCache: MongooseCache | undefined;
-}
-
-const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
-
-if (!global.mongooseCache) {
-    global.mongooseCache = cached;
-}
-
-export async function connectDB() {
-    if (cached.conn) return cached.conn;
-
-    if (!cached.promise) {
-        cached.promise = mongoose.connect(MONGODB_URI, {
-            bufferCommands: false,
-        });
-    }
-
-    try {
-        cached.conn = await cached.promise;
-    } catch (e) {
-        cached.promise = null;
-        throw e;
-    }
-
-    return cached.conn;
-}
-
-export default connectDB;
+export default db;

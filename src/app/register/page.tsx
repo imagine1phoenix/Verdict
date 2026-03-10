@@ -1,45 +1,75 @@
 "use client";
 
 import { useState } from "react";
-import { Scale, Lock, Mail, ArrowRight } from "lucide-react";
+import { Scale, Lock, Mail, User, ArrowRight, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
-export default function LoginPage() {
+export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
         const form = e.target as HTMLFormElement;
+        const name = (form.elements.namedItem("name") as HTMLInputElement).value;
         const email = (form.elements.namedItem("email") as HTMLInputElement).value;
         const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+        const confirmPassword = (form.elements.namedItem("confirmPassword") as HTMLInputElement).value;
+
+        if (password !== confirmPassword) {
+            toast.error("PASSWORDS DO NOT MATCH");
+            setIsLoading(false);
+            return;
+        }
+
+        if (password.length < 6) {
+            toast.error("PASSWORD MUST BE AT LEAST 6 CHARACTERS");
+            setIsLoading(false);
+            return;
+        }
 
         try {
-            const result = await signIn("credentials", {
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                toast.error(data.error?.toUpperCase() || "REGISTRATION FAILED");
+                setIsLoading(false);
+                return;
+            }
+
+            toast.success("ACCOUNT CREATED SUCCESSFULLY");
+
+            // Auto-sign in after registration
+            const signInResult = await signIn("credentials", {
                 email,
                 password,
                 redirect: false,
             });
 
-            if (result?.error) {
-                toast.error(result.error.toUpperCase());
-                setIsLoading(false);
-            } else {
-                toast.success("AUTH SUCCESSFUL");
+            if (signInResult?.ok) {
                 router.push("/");
+            } else {
+                router.push("/login");
             }
         } catch {
-            toast.error("AUTHENTICATION FAILED");
+            toast.error("SOMETHING WENT WRONG");
             setIsLoading(false);
         }
     };
 
-    const handleGoogleLogin = () => {
+    const handleGoogleRegister = () => {
         setIsGoogleLoading(true);
         signIn("google", { callbackUrl: "/" });
     };
@@ -51,26 +81,26 @@ export default function LoginPage() {
             <div className="absolute top-8 left-8 right-8 border-t-[4px] border-ink" />
             <div className="absolute top-10 left-8 right-8 border-t border-ink" />
 
-            {/* Login Card */}
+            {/* Register Card */}
             <div className="w-full max-w-md border border-ink bg-newsprint relative z-10">
 
                 {/* Inverted Header */}
                 <div className="bg-ink text-newsprint py-8 px-8 text-center border-b border-ink">
                     <Scale className="w-6 h-6 mx-auto mb-3 text-newsprint" strokeWidth={1.5} />
                     <h1 className="font-serif text-3xl font-bold tracking-[0.15em]">VERDICT.AI</h1>
-                    <p className="text-[10px] font-mono text-neutral mt-2 uppercase tracking-widest">Secure Portal</p>
+                    <p className="text-[10px] font-mono text-neutral mt-2 uppercase tracking-widest">New Registration</p>
                 </div>
 
                 {/* Form */}
                 <div className="p-8">
-                    <div className="mb-8 text-center">
-                        <h2 className="font-serif text-xl font-bold text-ink mb-1">Restricted Access</h2>
-                        <p className="text-[10px] font-sans font-semibold text-neutral uppercase tracking-wider">Enter credentials to proceed</p>
+                    <div className="mb-6 text-center">
+                        <h2 className="font-serif text-xl font-bold text-ink mb-1">Create Account</h2>
+                        <p className="text-[10px] font-sans font-semibold text-neutral uppercase tracking-wider">Register to access the portal</p>
                     </div>
 
-                    {/* Google Sign-In Button */}
+                    {/* Google Sign-Up Button */}
                     <button
-                        onClick={handleGoogleLogin}
+                        onClick={handleGoogleRegister}
                         disabled={isGoogleLoading}
                         className="w-full flex items-center justify-center gap-3 py-3.5 border-2 border-ink bg-newsprint text-ink hover:bg-ink hover:text-newsprint transition-all font-sans text-xs font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
@@ -96,7 +126,7 @@ export default function LoginPage() {
                                         className="fill-[#EA4335] group-hover:fill-newsprint transition-colors"
                                     />
                                 </svg>
-                                <span>Sign in with Google</span>
+                                <span>Sign up with Google</span>
                             </>
                         )}
                     </button>
@@ -108,8 +138,21 @@ export default function LoginPage() {
                         <div className="flex-1 border-t border-ink/20" />
                     </div>
 
-                    {/* Email/Password Form */}
-                    <form onSubmit={handleLogin} className="space-y-6">
+                    {/* Registration Form */}
+                    <form onSubmit={handleRegister} className="space-y-5">
+                        <div>
+                            <label className="block text-[10px] font-sans font-bold text-neutral mb-3 flex items-center uppercase tracking-wider">
+                                <User className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} /> Full Name
+                            </label>
+                            <input
+                                type="text"
+                                name="name"
+                                required
+                                placeholder="ENTER FULL NAME..."
+                                className="input-newsprint text-sm"
+                            />
+                        </div>
+
                         <div>
                             <label className="block text-[10px] font-sans font-bold text-neutral mb-3 flex items-center uppercase tracking-wider">
                                 <Mail className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} /> Identity Identifier
@@ -131,7 +174,20 @@ export default function LoginPage() {
                                 type="password"
                                 name="password"
                                 required
-                                placeholder="PASSPHRASE..."
+                                placeholder="MIN 6 CHARACTERS..."
+                                className="input-newsprint text-sm"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-[10px] font-sans font-bold text-neutral mb-3 flex items-center uppercase tracking-wider">
+                                <Lock className="w-3.5 h-3.5 mr-2" strokeWidth={1.5} /> Confirm Protocol
+                            </label>
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                required
+                                placeholder="REPEAT PASSPHRASE..."
                                 className="input-newsprint text-sm"
                             />
                         </div>
@@ -141,15 +197,27 @@ export default function LoginPage() {
                             disabled={isLoading}
                             className="w-full mt-4 flex justify-center items-center py-3.5 bg-ink text-newsprint font-sans text-xs font-bold hover:bg-ink/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
                         >
-                            {isLoading ? "Authenticating..." : (
+                            {isLoading ? "Creating Account..." : (
                                 <>
-                                    <span>Initialize</span>
-                                    <ArrowRight className="w-4 h-4 ml-3" strokeWidth={1.5} />
+                                    <UserPlus className="w-4 h-4 mr-3" strokeWidth={1.5} />
+                                    <span>Register</span>
                                 </>
                             )}
                         </button>
                     </form>
 
+                    {/* Login link */}
+                    <div className="mt-6 text-center">
+                        <p className="text-[10px] font-sans text-neutral uppercase tracking-wider">
+                            Already registered?{" "}
+                            <Link
+                                href="/login"
+                                className="text-ink font-bold underline underline-offset-4 hover:text-ink/70 transition-colors"
+                            >
+                                Sign In Here
+                            </Link>
+                        </p>
+                    </div>
                 </div>
 
                 {/* Footer */}

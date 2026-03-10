@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/db";
-import Case from "@/models/Case";
+import { db } from "@/lib/db";
+import { cases } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await connectDB();
         const { id } = await params;
 
-        const found = await Case.findOne({ caseId: id }).lean();
+        const [found] = await db
+            .select()
+            .from(cases)
+            .where(eq(cases.caseId, id));
+
         if (!found) {
             return NextResponse.json({ error: "Case not found" }, { status: 404 });
         }
@@ -27,15 +31,14 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await connectDB();
         const { id } = await params;
         const body = await request.json();
 
-        const updated = await Case.findOneAndUpdate(
-            { caseId: id },
-            { $set: body },
-            { new: true, lean: true }
-        );
+        const [updated] = await db
+            .update(cases)
+            .set({ ...body, updatedAt: new Date() })
+            .where(eq(cases.caseId, id))
+            .returning();
 
         if (!updated) {
             return NextResponse.json({ error: "Case not found" }, { status: 404 });

@@ -21,7 +21,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         return <div className="min-h-screen bg-newsprint" />;
     }
 
-    if (pathname === '/login') {
+    if (pathname === '/login' || pathname === '/register') {
         return <>{children}</>;
     }
 

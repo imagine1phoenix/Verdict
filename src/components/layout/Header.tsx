@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, LogOut, Settings, User, Bell, Moon, Sun, Menu } from "lucide-react";
+import { Search, LogOut, Settings, User, Moon, Sun, Menu } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+import { useSession, signOut } from "next-auth/react";
 import GlobalSearch from "@/components/GlobalSearch";
 
 interface HeaderProps {
@@ -11,9 +12,21 @@ interface HeaderProps {
 }
 
 export default function Header({ onMenuToggle }: HeaderProps) {
+    const { data: session } = useSession();
     const [profileOpen, setProfileOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [dark, setDark] = useState(false);
+
+    // Derive user info from session
+    const userName = session?.user?.name || "User";
+    const userEmail = session?.user?.email || "";
+    const userInitials = userName
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+    const userRole = "Member"; // Default role display
 
     // Hydrate dark mode from localStorage
     useEffect(() => {
@@ -48,6 +61,11 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
     const handleNotifications = () => {
         toast("No new announcements.", { icon: "📝" });
+    };
+
+    const handleLogout = async () => {
+        toast.error("SESSION TERMINATED");
+        await signOut({ callbackUrl: "/login" });
     };
 
     return (
@@ -106,19 +124,19 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                 {/* Profile Area */}
                 <div className="flex items-center justify-center px-3 md:px-6 relative cursor-pointer hover:bg-ink/5 transition-colors" onClick={() => setProfileOpen(!profileOpen)}>
                     <div className="text-right hidden xl:block mr-4">
-                        <p className="text-xs font-sans font-bold uppercase tracking-wider text-ink">Adv. Prit Thacker</p>
-                        <p className="text-[10px] font-mono text-neutral uppercase mt-0.5 tracking-wider">Partner</p>
+                        <p className="text-xs font-sans font-bold uppercase tracking-wider text-ink">{userName}</p>
+                        <p className="text-[10px] font-mono text-neutral uppercase mt-0.5 tracking-wider">{userRole}</p>
                     </div>
                     <div className="w-8 h-8 md:w-10 md:h-10 border border-ink bg-newsprint flex items-center justify-center font-serif font-bold text-xs md:text-sm text-ink shrink-0">
-                        PT
+                        {userInitials}
                     </div>
 
                     {/* Dropdown */}
                     {profileOpen && (
                         <div className="absolute top-full right-0 mt-0 w-56 bg-newsprint border border-ink z-50 flex flex-col">
                             <div className="px-4 py-3 border-b border-ink bg-ink text-newsprint">
-                                <p className="text-xs font-sans font-bold uppercase">Adv. Prit Thacker</p>
-                                <p className="text-[10px] font-mono text-neutral mt-1 uppercase">prit@verdictlaw.in</p>
+                                <p className="text-xs font-sans font-bold uppercase">{userName}</p>
+                                <p className="text-[10px] font-mono text-neutral mt-1 uppercase">{userEmail}</p>
                             </div>
 
                             <Link href="/settings" className="px-4 py-3 border-b border-ink font-sans text-xs font-semibold uppercase hover:bg-ink/5 text-ink flex items-center transition-colors tracking-wider">
@@ -129,11 +147,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                                 <Settings className="w-3.5 h-3.5 mr-3" strokeWidth={1.5} /> Firm Settings
                             </Link>
 
-                            <button onClick={() => {
-                                document.cookie = "verdict_auth=; path=/; max-age=0";
-                                toast.error("SESSION TERMINATED");
-                                window.location.href = "/login";
-                            }} className="px-4 py-3 font-sans text-xs font-semibold uppercase hover:bg-accent hover:text-white text-ink flex items-center text-left transition-colors tracking-wider">
+                            <button onClick={handleLogout} className="px-4 py-3 font-sans text-xs font-semibold uppercase hover:bg-accent hover:text-white text-ink flex items-center text-left transition-colors tracking-wider">
                                 <LogOut className="w-3.5 h-3.5 mr-3" strokeWidth={1.5} /> Disconnect
                             </button>
                         </div>

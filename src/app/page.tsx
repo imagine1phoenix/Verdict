@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Scale, FileCheck2, TrendingUp, Clock, Gavel, FileWarning, ArrowRight, CalendarDays, FileText, Users, Activity } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import AIInsightsPanel from "@/components/AIInsightsPanel";
 import CollaborationIndicators from "@/components/CollaborationIndicators";
 import PinnedAndRecent from "@/components/PinnedAndRecent";
@@ -42,6 +43,7 @@ const fallbackActivity = [
 ];
 
 export default function Home() {
+    const { data: session } = useSession();
     const router = useRouter();
     const [stats, setStats] = useState(fallbackStats);
     const [calendarEvents, setCalendarEvents] = useState(fallbackEvents);
@@ -81,7 +83,7 @@ export default function Home() {
                     <div className="flex-1">
                         <h1 className="font-serif text-2xl md:text-4xl font-bold text-ink tracking-tight">Dashboard</h1>
                         <p className="drop-cap text-sm text-neutral font-sans mt-3 leading-relaxed max-w-xl">
-                            Welcome back, Adv. Prit. Here is your firm&apos;s AI intelligence summary for today&apos;s edition. All case analytics and document scans are current as of this morning.
+                            Welcome back, {session?.user?.name || "Counsellor"}. Here is your firm&apos;s AI intelligence summary for today&apos;s edition. All case analytics and document scans are current as of this morning.
                         </p>
                     </div>
 
