@@ -40,10 +40,10 @@ export default function AuditLogsClient() {
             const res = await fetch(`/api/admin/audit-logs?${params.toString()}`);
             if (!res.ok) throw new Error("Failed to fetch logs");
 
-            const data = await res.json();
-            setLogs(data.logs);
-            setTotalPages(data.totalPages);
-            setTotalEventCount(data.totalCount);
+            const json = await res.json();
+            setLogs(json.data || []);
+            setTotalPages(json.pagination?.totalPages || 1);
+            setTotalEventCount(json.pagination?.total || 0);
         } catch (error) {
             console.error(error);
             toast.error("Failed to load audit logs");
@@ -144,7 +144,7 @@ export default function AuditLogsClient() {
                                     </div>
                                 </td>
                             </tr>
-                        ) : logs.map((log, i) => (
+                        ) : (logs || []).map((log, i) => (
                             <tr key={log.id} className={`border-b border-ink/20 hover:bg-ink/5 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-newsprint/30'}`}>
                                 <td className="p-3 align-top">
                                     <div className="font-mono text-[10px] text-ink whitespace-nowrap">
@@ -169,12 +169,12 @@ export default function AuditLogsClient() {
                                 </td>
                                 <td className="p-3 align-top">
                                     <span className={`px-2 py-0.5 border font-mono text-[9px] font-bold uppercase ${log.action === 'create' ? 'border-green-600 text-green-700 bg-green-50' :
-                                            log.action === 'update' ? 'border-blue-600 text-blue-700 bg-blue-50' :
-                                                log.action === 'delete' ? 'border-red-600 text-red-700 bg-red-50' :
-                                                    log.action === 'login' ? 'border-purple-600 text-purple-700 bg-purple-50' :
-                                                        log.action === 'register' ? 'border-teal-600 text-teal-700 bg-teal-50' :
-                                                            log.action === 'reset_database' ? 'border-accent text-accent bg-accent/10' :
-                                                                'border-ink text-ink bg-ink/5'
+                                        log.action === 'update' ? 'border-blue-600 text-blue-700 bg-blue-50' :
+                                            log.action === 'delete' ? 'border-red-600 text-red-700 bg-red-50' :
+                                                log.action === 'login' ? 'border-purple-600 text-purple-700 bg-purple-50' :
+                                                    log.action === 'register' ? 'border-teal-600 text-teal-700 bg-teal-50' :
+                                                        log.action === 'reset_database' ? 'border-accent text-accent bg-accent/10' :
+                                                            'border-ink text-ink bg-ink/5'
                                         }`}>
                                         {log.action}
                                     </span>
