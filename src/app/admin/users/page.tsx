@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/schema";
 import { desc } from "drizzle-orm";
 import UsersClient from "./UsersClient";
-import { Users as UsersIcon } from "lucide-react";
+import { Users as UsersIcon } from '@/components/Icons';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LogOut, Sun, Moon, Menu, ShieldAlert } from "lucide-react";
+import { LogOut, Sun, Moon, Menu, ShieldAlert } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 import { useSession, signOut } from "next-auth/react";
 

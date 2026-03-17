@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { announcements } from "@/lib/schema";
 import { desc } from "drizzle-orm";
 import AnnouncementsClient from "./AnnouncementsClient";
-import { FileText } from "lucide-react";
+import { FileText } from '@/components/Icons';
 
 export const dynamic = 'force-dynamic';
 

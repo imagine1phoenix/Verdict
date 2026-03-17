@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
     Brain, ChevronRight, ChevronDown, AlertTriangle, TrendingUp,
     Scale, FileText, Clock, Shield, X, ChevronLeft
-} from "lucide-react";
+} from '@/components/Icons';
 
 type Insight = {
     type: "similarity" | "deadline" | "improvement" | "suggestion" | "risk";

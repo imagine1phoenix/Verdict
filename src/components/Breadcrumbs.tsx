@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home } from '@/components/Icons';
 
 const routeLabels: Record<string, string> = {
     "/": "Dashboard",

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
     Pin, Star, Clock, Bookmark, FileText, Scale, Archive,
     Search, X, ChevronRight, ChevronDown, Loader2
-} from "lucide-react";
+} from '@/components/Icons';
 
 type PinnedItem = { type: "case" | "document" | "evidence" | "search"; title: string; detail: string };
 

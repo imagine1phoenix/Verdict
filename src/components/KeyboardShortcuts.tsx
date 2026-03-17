@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { X, Search, FileText, Scale, Upload, Command, Keyboard } from "lucide-react";
+import { X, Search, FileText, Scale, Upload, Command, Keyboard } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type Shortcut = { keys: string; label: string; action: () => void };

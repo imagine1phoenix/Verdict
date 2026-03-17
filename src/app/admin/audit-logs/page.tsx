@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { auditLogs, users } from "@/lib/schema";
 import { desc } from "drizzle-orm";
 import AuditLogsClient from "./AuditLogsClient";
-import { History } from "lucide-react";
+import { History } from '@/components/Icons';
 
 export const dynamic = 'force-dynamic';
 

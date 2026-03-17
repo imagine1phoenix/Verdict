@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BarChart3, TrendingUp, Users, Clock, Scale, Trophy, FileText, Target } from "lucide-react";
+import { BarChart3, TrendingUp, Users, Clock, Scale, Trophy, FileText, Target } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type Analytics = {

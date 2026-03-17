@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Plus, Trash2, Edit2, X } from "lucide-react";
+import { Save, Plus, Trash2, Edit2, X } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type Setting = {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Gavel, Search, Trash2, ChevronRight, ChevronDown, Trophy, XCircle, Handshake, AlertTriangle, Plus, X } from "lucide-react";
+import { Gavel, Search, Trash2, ChevronRight, ChevronDown, Trophy, XCircle, Handshake, AlertTriangle, Plus, X } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type PastTrial = {

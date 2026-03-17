@@ -1,6 +1,6 @@
 "use client";
 
-import { Scale, Home, Calendar, FileText, History, Settings, ChevronRight, FolderOpen, Archive, BarChart3, Users, GraduationCap, Gavel, X, ShieldAlert } from "lucide-react";
+import { Scale, Home, Calendar, FileText, History, Settings, ChevronRight, FolderOpen, Archive, BarChart3, Users, GraduationCap, Gavel, X, ShieldAlert } from '@/components/Icons';
 import { clsx } from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

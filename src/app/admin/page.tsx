@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { users, cases, documents, auditLogs, evidence } from "@/lib/schema";
 import { desc, sql } from "drizzle-orm";
-import { Users, FolderOpen, FileText, Database, ShieldAlert, Activity } from "lucide-react";
+import { Users, FolderOpen, FileText, Database, ShieldAlert, Activity } from '@/components/Icons';
 import Link from "next/link";
 
 export const dynamic = 'force-dynamic';

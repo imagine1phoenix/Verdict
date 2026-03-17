@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Shield, Bell, CreditCard, Building, Mail, LogOut, Upload, CheckCircle2, Settings, Loader2 } from "lucide-react";
+import { User, Shield, Bell, CreditCard, Building, Mail, LogOut, Upload, CheckCircle2, Settings, Loader2 } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 export default function SettingsPage() {

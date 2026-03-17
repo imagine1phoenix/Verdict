@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { systemSettings } from "@/lib/schema";
 import { asc } from "drizzle-orm";
 import SettingsClient from "./SettingsClient";
-import { Settings as SettingsIcon } from "lucide-react";
+import { Settings as SettingsIcon } from '@/components/Icons';
 
 export const dynamic = 'force-dynamic';
 

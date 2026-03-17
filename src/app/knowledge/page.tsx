@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BookOpen, Search, Plus, X, Trash2, Pin, Eye, Tag } from "lucide-react";
+import { BookOpen, Search, Plus, X, Trash2, Pin, Eye, Tag } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type Article = {

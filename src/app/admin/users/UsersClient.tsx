@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit2, ShieldAlert, Trash2, Shield, Search } from "lucide-react";
+import { Edit2, ShieldAlert, Trash2, Shield, Search } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type User = {

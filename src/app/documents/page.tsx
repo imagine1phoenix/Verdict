@@ -5,7 +5,7 @@ import {
     FileText, Search, FolderOpen, ChevronRight, Download, Plus, X,
     Trash2, Eye, Filter, Upload, Edit, Gavel, Scale, Handshake, Mail,
     BookOpen, Clock, Tag, CheckCircle, AlertTriangle
-} from "lucide-react";
+} from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 /* ─── Types ─── */

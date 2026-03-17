@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FileSearch, Plus, X, Trash2 } from "lucide-react";
+import { FileSearch, Plus, X, Trash2 } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type ProofJob = {

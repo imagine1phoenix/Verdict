@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ChevronLeft, ChevronRight, Activity, Filter, Download } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Activity, Filter, Download } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type AuditLog = {

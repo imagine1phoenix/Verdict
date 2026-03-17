@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Edit2, Plus, X, Globe, EyeOff, Check } from "lucide-react";
+import { Trash2, Edit2, Plus, X, Globe, EyeOff, Check } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 type Announcement = {

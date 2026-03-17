@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, RefreshCw, AlertTriangle, Archive, Database as DatabaseIcon, ShieldAlert } from "lucide-react";
+import { Download, RefreshCw, AlertTriangle, Archive, Database as DatabaseIcon, ShieldAlert } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 export default function AdminDatabasePage() {

@@ -7,7 +7,7 @@ import {
     Users, Timer, Gavel, MessageSquare, Brain, Shield,
     BarChart3, Download, ChevronRight, Mic, Monitor, AlertTriangle,
     Zap, Target, Heart, TrendingUp, ClipboardList, Video
-} from "lucide-react";
+} from '@/components/Icons';
 import { toast } from "react-hot-toast";
 
 /* ─── Types & Data ─── */

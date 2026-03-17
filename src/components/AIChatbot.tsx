@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, X, Minimize2, Maximize2, Sparkles } from "lucide-react";
+import { Bot, Send, X, Minimize2, Maximize2, Sparkles } from '@/components/Icons';
 
 type Message = { role: "user" | "assistant" | "system"; text: string };
 

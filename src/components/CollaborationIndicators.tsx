@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Eye, Loader2 } from "lucide-react";
+import { Users, Eye, Loader2 } from '@/components/Icons';
 
 type OnlineUser = {
     id: number;

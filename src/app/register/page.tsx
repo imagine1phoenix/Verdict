@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Scale, Lock, Mail, User, ArrowRight, UserPlus } from "lucide-react";
+import { Scale, Lock, Mail, User, ArrowRight, UserPlus } from '@/components/Icons';
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { signIn } from "next-auth/react";

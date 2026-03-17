@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, LogOut, Settings, User, Moon, Sun, Menu } from "lucide-react";
+import { Search, LogOut, Settings, User, Moon, Sun, Menu } from '@/components/Icons';
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { useSession, signOut } from "next-auth/react";

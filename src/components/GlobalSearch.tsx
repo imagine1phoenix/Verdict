@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, X, Clock, Star, FileText, Scale, Archive, Calendar, Users, Loader2 } from "lucide-react";
+import { Search, X, Clock, Star, FileText, Scale, Archive, Calendar, Users, Loader2 } from '@/components/Icons';
 
 type ResultCategory = "cases" | "events" | "users";
 

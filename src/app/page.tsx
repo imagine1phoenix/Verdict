@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Scale, FileCheck2, TrendingUp, Clock, Gavel, FileWarning, ArrowRight, CalendarDays, FileText, Users, Activity } from "lucide-react";
+import { Scale, FileCheck2, TrendingUp, Clock, Gavel, FileWarning, ArrowRight, CalendarDays, FileText, Users, Activity } from '@/components/Icons';
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
