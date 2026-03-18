@@ -360,7 +360,7 @@ const DashboardShell = () => {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <ChartNoAxesCombinedIcon />
                         <span>Dashboard</span>
@@ -376,7 +376,7 @@ const DashboardShell = () => {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <ChartSplineIcon />
                         <span>Content Performance</span>
@@ -384,7 +384,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <UsersIcon />
                         <span>Audience Insight</span>
@@ -392,7 +392,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <ChartPieIcon />
                         <span>Engagement Metrics</span>
@@ -400,7 +400,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <HashIcon />
                         <span>Hashtag Performance</span>
@@ -409,7 +409,7 @@ const DashboardShell = () => {
                     <SidebarMenuBadge className='bg-primary/10 rounded-full'>3</SidebarMenuBadge>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <ArrowRightLeftIcon />
                         <span>Competitor Analysis</span>
@@ -417,7 +417,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <Clock9Icon />
                         <span>Campaign Tracking</span>
@@ -425,7 +425,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <ClipboardListIcon />
                         <span>Sentiment Tracking</span>
@@ -433,7 +433,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <CrownIcon />
                         <span>Influencer</span>
@@ -448,7 +448,7 @@ const DashboardShell = () => {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <SquareActivityIcon />
                         <span>Real Time Monitoring</span>
@@ -456,7 +456,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <CalendarClockIcon />
                         <span>Schedule Post & Calendar</span>
@@ -464,7 +464,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <Undo2Icon />
                         <span>Report & Export</span>
@@ -472,7 +472,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <SettingsIcon />
                         <span>Settings & Integrations</span>
@@ -480,7 +480,7 @@ const DashboardShell = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton>
                       <a href='#'>
                         <UsersIcon />
                         <span>User Management</span>

@@ -36,7 +36,7 @@ const TotalEarningCard = ({ earningData, title, earning, trend, percentage, comp
       <CardHeader className='flex items-center justify-between'>
         <span className='text-lg font-semibold'>{title}</span>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger>
             <Button variant='ghost' size='icon' className='text-muted-foreground size-6 rounded-full'>
               <EllipsisVerticalIcon />
               <span className='sr-only'>Menu</span>
